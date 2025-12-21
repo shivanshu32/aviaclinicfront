@@ -16,8 +16,7 @@ import {
   Users,
   Bell,
   Stethoscope,
-  Receipt,
-  CheckCircle2
+  Receipt
 } from 'lucide-react';
 
 const featureCategories = [

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { CheckCircle, Zap, Shield, Clock, Award, Star, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, Star, ArrowRight, Zap, Award, Shield } from 'lucide-react';
 import Link from 'next/link';
 import SectionHeader from '@/utils/sectionHeaders';
 import PriceToggle from '@/components/ui/PriceToggle';
