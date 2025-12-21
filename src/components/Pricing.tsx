@@ -138,9 +138,6 @@ interface PricingCardProps {
   popular: boolean;
   icon: React.ReactNode;
   color: string;
-  bgGradient: string;
-  borderColor: string;
-  accentColor: string;
   index: number;
   isYearly: boolean;
   isHovered: boolean;
@@ -158,9 +155,6 @@ const PricingCard: React.FC<PricingCardProps> = ({
   popular,
   icon,
   color,
-  bgGradient,
-  borderColor,
-  accentColor,
   index,
   isYearly,
   isHovered,

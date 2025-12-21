@@ -10,22 +10,14 @@ import {
   MessageCircle, 
   FileBarChart, 
   CreditCard, 
-  Building2, 
   Shield, 
-  Smartphone,
   Video,
   Brain,
-  Cloud,
   Users,
   Bell,
-  Star,
   Stethoscope,
-  ClipboardList,
   Receipt,
-  CheckCircle2,
-  Sparkles,
-  Zap,
-  TrendingUp
+  CheckCircle2
 } from 'lucide-react';
 
 const featureCategories = [

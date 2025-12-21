@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Building2, Network, CheckCircle2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -110,7 +110,6 @@ const SolutionCard: React.FC<SolutionCardProps> = ({
   features,
   highlight,
   index,
-  stats,
   color
 }) => {
   const [isHovered, setIsHovered] = useState(false);

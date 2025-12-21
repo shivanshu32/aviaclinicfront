@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
 
 interface SectionHeaderProps {
   title: string;
@@ -17,7 +16,6 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   subtitle,
   description,
   className = '',
-  titleClassName = '',
   subtitleClassName = '',
   descriptionClassName = '',
 }) => {
@@ -58,8 +56,8 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
         transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
         {/* Decorative quote marks */}
-        <div className="absolute -left-2 -top-2 text-primary-200 text-6xl font-serif leading-none opacity-30">"</div>
-        <div className="absolute -right-2 -bottom-6 text-primary-200 text-6xl font-serif leading-none opacity-30">"</div>
+        <div className="absolute -left-2 -top-2 text-primary-200 text-6xl font-serif leading-none opacity-30">&ldquo;</div>
+        <div className="absolute -right-2 -bottom-6 text-primary-200 text-6xl font-serif leading-none opacity-30">&rdquo;</div>
         
         <p className={`relative text-lg md:text-xl lg:text-2xl leading-relaxed font-sans font-normal text-secondary-600/95 pb-4 ${descriptionClassName}`}>
           {description}

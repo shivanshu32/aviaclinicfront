@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ArrowRight, Phone, CheckCircle, Sparkles, Users, Star, TrendingUp, Award } from 'lucide-react';
+import { ArrowRight, Phone, CheckCircle, Users, Star, TrendingUp, Award } from 'lucide-react';
 
 export default function CTA() {
   return (
