@@ -41,7 +41,7 @@ export default function Hero() {
 
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <Link
-                href="#contact"
+                href="/signup"
                 className="group w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-8 py-3.5 rounded-xl font-sans font-bold text-base transition-all hover:shadow-2xl hover:shadow-primary-500/40 hover:scale-105 flex items-center justify-center gap-2 tracking-wide"
               >
                 Start Free Trial

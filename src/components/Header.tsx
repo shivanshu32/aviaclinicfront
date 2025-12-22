@@ -45,7 +45,7 @@ export default function Header() {
 
           <div className="hidden md:flex items-center">
             <Link
-              href="#contact"
+              href="/login"
               className="font-sans bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all hover:shadow-lg hover:shadow-primary-500/30 hover:scale-105"
             >
               Login
@@ -76,7 +76,7 @@ export default function Header() {
               ))}
               <div className="pt-4 mt-4 border-t border-gray-200">
                 <Link
-                  href="#contact"
+                  href="/login"
                   className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-2.5 rounded-lg font-bold transition-colors text-center block"
                   onClick={() => setIsMenuOpen(false)}
                 >
