@@ -47,10 +47,6 @@ export default function ServiceChargesPage() {
     description: '',
   });
 
-  useEffect(() => {
-    fetchServices();
-  }, [selectedCategory]);
-
   const fetchServices = async () => {
     setLoading(true);
     try {
@@ -65,6 +61,11 @@ export default function ServiceChargesPage() {
       setLoading(false);
     }
   };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    fetchServices();
+  }, [selectedCategory]);
 
   const filteredServices = services.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -127,7 +128,7 @@ export default function ServiceChargesPage() {
       }
       handleCloseModal();
       fetchServices();
-    } catch (error) {
+    } catch {
       toast.error('Failed to save service');
     } finally {
       setSaving(false);
@@ -141,7 +142,7 @@ export default function ServiceChargesPage() {
       await serviceItemService.delete(id);
       toast.success('Service deleted successfully');
       fetchServices();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete service');
     }
   };

@@ -63,7 +63,8 @@ export default function SettingsPage() {
     try {
       await settingsService.update(settings);
       toast.success('Settings saved successfully');
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { error?: string };
       toast.error(error.error || 'Failed to save settings');
     } finally {
       setSaving(false);

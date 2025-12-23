@@ -7,7 +7,7 @@ import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { doctorService } from '@/lib/services';
 
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+// const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export default function AddDoctorPage() {
   const router = useRouter();
@@ -48,7 +48,8 @@ export default function AddDoctorPage() {
       await doctorService.create(data);
       toast.success('Doctor added successfully');
       router.push('/dashboard/doctors');
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { error?: string };
       toast.error(error.error || 'Failed to add doctor');
     } finally {
       setLoading(false);

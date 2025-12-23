@@ -68,7 +68,15 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    fetchAppointments();
+    const doFetchAppointments = async () => {
+      try {
+        const res = await dashboardService.getAppointments(selectedDate);
+        setAppointments(res.data.appointments || []);
+      } catch (error) {
+        console.error('Failed to fetch appointments:', error);
+      }
+    };
+    doFetchAppointments();
   }, [selectedDate]);
 
   const fetchDashboardData = async () => {
@@ -88,16 +96,8 @@ export default function DashboardPage() {
     }
   };
 
-  const fetchAppointments = async () => {
-    try {
-      const res = await dashboardService.getAppointments(selectedDate);
-      setAppointments(res.data.appointments || []);
-    } catch (error) {
-      console.error('Failed to fetch appointments:', error);
-    }
-  };
-
-  const handleStatusUpdate = async (appointmentId: string, newStatus: string, hasBill = false) => {
+  
+  const handleStatusUpdate = async (appointmentId: string, newStatus: 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled', hasBill = false) => {
     if (newStatus === 'completed' && !hasBill) {
       toast.error('Please generate bill before marking appointment as completed');
       return;
@@ -174,7 +174,7 @@ export default function DashboardPage() {
     ? appointments 
     : appointments.filter(apt => apt.status === activeTab);
 
-  const getNextAction = (status: string) => {
+  const getNextAction = (status: string): { action: 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled'; label: string; icon: typeof UserCheck; color: string } | null => {
     switch (status) {
       case 'scheduled': return { action: 'checked-in', label: 'Check-in', icon: UserCheck, color: 'text-yellow-600 hover:bg-yellow-50' };
       case 'checked-in': return { action: 'in-progress', label: 'Start', icon: Play, color: 'text-blue-600 hover:bg-blue-50' };

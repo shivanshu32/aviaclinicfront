@@ -22,25 +22,26 @@ function ActivateContent() {
   const [tokenError, setTokenError] = useState('');
 
   useEffect(() => {
+    const doVerify = async () => {
+      try {
+        const response = await authService.verifyToken(token!);
+        setTokenData(response.data);
+      } catch (err: unknown) {
+        const error = err as { error?: string };
+        setTokenError(error.error || 'Invalid or expired activation link');
+      } finally {
+        setVerifying(false);
+      }
+    };
     if (token) {
-      verifyToken();
+      doVerify();
     } else {
       setTokenError('No activation token provided');
       setVerifying(false);
     }
   }, [token]);
 
-  const verifyToken = async () => {
-    try {
-      const response = await authService.verifyToken(token!);
-      setTokenData(response.data);
-    } catch (err: any) {
-      setTokenError(err.error || 'Invalid or expired activation link');
-    } finally {
-      setVerifying(false);
-    }
-  };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -65,8 +66,9 @@ function ActivateContent() {
       await authService.activate(token!, password);
       toast.success('Account activated successfully!');
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.error || 'Activation failed. Please try again.');
+    } catch (err: unknown) {
+      const error = err as { error?: string };
+      setError(error.error || 'Activation failed. Please try again.');
     } finally {
       setLoading(false);
     }

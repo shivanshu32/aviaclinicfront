@@ -24,20 +24,19 @@ export default function AppointmentsPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchAppointments = async () => {
+      setLoading(true);
+      try {
+        const response = await appointmentService.getAll({ date: selectedDate });
+        setAppointments(response.data.appointments);
+      } catch (error) {
+        console.error('Failed to fetch appointments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchAppointments();
   }, [selectedDate]);
-
-  const fetchAppointments = async () => {
-    setLoading(true);
-    try {
-      const response = await appointmentService.getAll({ date: selectedDate });
-      setAppointments(response.data.appointments);
-    } catch (error) {
-      console.error('Failed to fetch appointments:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleStatusUpdate = async (appointmentId: string, newStatus: string, hasBill = false) => {
     if (newStatus === 'completed' && !hasBill) {
@@ -47,12 +46,12 @@ export default function AppointmentsPage() {
 
     setUpdatingId(appointmentId);
     try {
-      await appointmentService.update(appointmentId, { status: newStatus as any });
+      await appointmentService.update(appointmentId, { status: newStatus as Appointment['status'] });
       setAppointments(prev => prev.map(apt => 
-        apt._id === appointmentId ? { ...apt, status: newStatus as any } : apt
+        apt._id === appointmentId ? { ...apt, status: newStatus as Appointment['status'] } : apt
       ));
       toast.success(`Appointment ${newStatus === 'cancelled' ? 'cancelled' : 'updated'} successfully`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to update appointment');
     } finally {
       setUpdatingId(null);

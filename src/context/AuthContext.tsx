@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.data.user);
       setTenant(response.data.tenant);
       setIsAuthenticated(true);
-    } catch (error) {
+    } catch {
       authService.logout();
       setUser(null);
       setTenant(null);

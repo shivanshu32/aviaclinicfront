@@ -20,6 +20,7 @@ export interface DashboardStatsResponse {
 export interface DashboardAppointmentsResponse {
   success: boolean;
   data: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     appointments: any[];
     total: number;
   };
@@ -44,7 +45,7 @@ export const dashboardService = {
   /**
    * Get recent activity
    */
-  getActivity: async (limit?: number): Promise<any> => {
+  getActivity: async (limit?: number): Promise<{ success: boolean; data: unknown }> => {
     const query = limit ? `?limit=${limit}` : '';
     return api.get(`/dashboard/activity${query}`);
   },

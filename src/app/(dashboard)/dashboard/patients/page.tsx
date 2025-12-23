@@ -25,31 +25,29 @@ export default function PatientsPage() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
+    const fetchPatients = async () => {
+      setLoading(true);
+      try {
+        const response = await patientService.getAll({
+          search: search || undefined,
+          page,
+          limit: 20,
+        });
+        setPatients(response.data.patients);
+        setTotalPages(response.data.pagination.pages);
+        setTotal(response.data.pagination.total);
+      } catch (error) {
+        console.error('Failed to fetch patients:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchPatients();
   }, [page, search]);
-
-  const fetchPatients = async () => {
-    setLoading(true);
-    try {
-      const response = await patientService.getAll({
-        search: search || undefined,
-        page,
-        limit: 20,
-      });
-      setPatients(response.data.patients);
-      setTotalPages(response.data.pagination.pages);
-      setTotal(response.data.pagination.total);
-    } catch (error) {
-      console.error('Failed to fetch patients:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchPatients();
   };
 
   const getInitials = (name: string) => {

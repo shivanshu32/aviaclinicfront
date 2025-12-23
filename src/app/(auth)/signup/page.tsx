@@ -47,8 +47,9 @@ export default function SignupPage() {
       await authService.signup(formData);
       setSuccess(true);
       toast.success('Registration successful! Check your email.');
-    } catch (err: any) {
-      setError(err.error || 'Registration failed. Please try again.');
+    } catch (err: unknown) {
+      const error = err as { error?: string };
+      setError(error.error || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

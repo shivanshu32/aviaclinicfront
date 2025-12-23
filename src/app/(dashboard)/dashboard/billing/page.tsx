@@ -32,47 +32,46 @@ export default function BillingPage() {
   const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
 
   useEffect(() => {
+    const fetchBills = async () => {
+      setLoading(true);
+      try {
+        const params: { page?: number; limit?: number; dateFrom?: string; dateTo?: string } = {
+          page: 1,
+          limit: 20,
+        };
+        if (dateFilter) {
+          params.dateFrom = dateFilter;
+          params.dateTo = dateFilter;
+        }
+
+        let response;
+        switch (activeType) {
+          case 'opd':
+            response = await billingService.opd.getAll(params);
+            break;
+          case 'misc':
+            response = await billingService.misc.getAll(params);
+            break;
+          case 'medicine':
+            response = await billingService.medicine.getAll(params);
+            break;
+          default:
+            response = { data: { bills: [], pagination: { total: 0, totalPages: 1 } } };
+        }
+
+        setBills(response.data?.bills || []);
+        if (response.data?.pagination) {
+          setPagination(response.data.pagination);
+        }
+      } catch (error) {
+        console.error('Failed to fetch bills:', error);
+        setBills([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchBills();
   }, [activeType, dateFilter]);
-
-  const fetchBills = async () => {
-    setLoading(true);
-    try {
-      const params: { page?: number; limit?: number; dateFrom?: string; dateTo?: string } = {
-        page: 1,
-        limit: 20,
-      };
-      if (dateFilter) {
-        params.dateFrom = dateFilter;
-        params.dateTo = dateFilter;
-      }
-
-      let response;
-      switch (activeType) {
-        case 'opd':
-          response = await billingService.opd.getAll(params);
-          break;
-        case 'misc':
-          response = await billingService.misc.getAll(params);
-          break;
-        case 'medicine':
-          response = await billingService.medicine.getAll(params);
-          break;
-        default:
-          response = { data: { bills: [], pagination: { total: 0, totalPages: 1 } } };
-      }
-
-      setBills(response.data?.bills || []);
-      if (response.data?.pagination) {
-        setPagination(response.data.pagination);
-      }
-    } catch (error) {
-      console.error('Failed to fetch bills:', error);
-      setBills([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredBills = bills.filter(bill => 
     bill.billNo?.toLowerCase().includes(searchQuery.toLowerCase()) ||

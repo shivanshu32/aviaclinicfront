@@ -87,7 +87,8 @@ export default function AddPatientPage() {
       await patientService.create(data);
       toast.success('Patient registered successfully');
       router.push('/dashboard/patients');
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { error?: string };
       toast.error(error.error || 'Failed to register patient');
     } finally {
       setLoading(false);

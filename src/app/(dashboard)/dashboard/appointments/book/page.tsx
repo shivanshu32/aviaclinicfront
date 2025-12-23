@@ -30,8 +30,19 @@ export default function BookAppointmentPage() {
   }, []);
 
   useEffect(() => {
+    const doSearch = async () => {
+      setSearchingPatients(true);
+      try {
+        const response = await patientService.getAll({ search: patientSearch, limit: 10 });
+        setPatients(response.data.patients);
+      } catch (error) {
+        console.error('Failed to search patients:', error);
+      } finally {
+        setSearchingPatients(false);
+      }
+    };
     if (patientSearch.length >= 2) {
-      searchPatients();
+      doSearch();
     } else {
       setPatients([]);
     }
@@ -49,18 +60,7 @@ export default function BookAppointmentPage() {
     }
   };
 
-  const searchPatients = async () => {
-    setSearchingPatients(true);
-    try {
-      const response = await patientService.getAll({ search: patientSearch, limit: 10 });
-      setPatients(response.data.patients);
-    } catch (error) {
-      console.error('Failed to search patients:', error);
-    } finally {
-      setSearchingPatients(false);
-    }
-  };
-
+  
   const selectPatient = (patient: Patient) => {
     setSelectedPatient(patient);
     setFormData(prev => ({ ...prev, patientId: patient._id }));
@@ -89,7 +89,8 @@ export default function BookAppointmentPage() {
       await appointmentService.create(formData);
       toast.success('Appointment booked successfully');
       router.push('/dashboard/appointments');
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as { error?: string };
       toast.error(error.error || 'Failed to book appointment');
     } finally {
       setLoading(false);

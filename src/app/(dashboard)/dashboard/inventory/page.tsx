@@ -25,7 +25,7 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [lowStockItems, setLowStockItems] = useState<Medicine[]>([]);
-  const [expiringItems, setExpiringItems] = useState<any[]>([]);
+  const [expiringItems, setExpiringItems] = useState<Medicine[]>([]);
   const [stats, setStats] = useState({ total: 0, lowStock: 0, expiring: 0 });
 
   useEffect(() => {
@@ -33,8 +33,20 @@ export default function InventoryPage() {
   }, []);
 
   useEffect(() => {
+    const doFetchMedicines = async () => {
+      try {
+        const response = await medicineService.getAll({ 
+          includeStock: true, 
+          limit: 100,
+          search: searchQuery || undefined 
+        });
+        setMedicines(response.data?.medicines || []);
+      } catch (error) {
+        console.error('Failed to fetch medicines:', error);
+      }
+    };
     if (activeTab === 'medicines') {
-      fetchMedicines();
+      doFetchMedicines();
     }
   }, [activeTab, searchQuery]);
 
@@ -62,19 +74,7 @@ export default function InventoryPage() {
     }
   };
 
-  const fetchMedicines = async () => {
-    try {
-      const response = await medicineService.getAll({ 
-        includeStock: true, 
-        limit: 100,
-        search: searchQuery || undefined 
-      });
-      setMedicines(response.data?.medicines || []);
-    } catch (error) {
-      console.error('Failed to fetch medicines:', error);
-    }
-  };
-
+  
   const getCurrentData = () => {
     switch (activeTab) {
       case 'low-stock': return lowStockItems;
@@ -211,7 +211,7 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {getCurrentData().map((item: any) => (
+                  {getCurrentData().map((item: Medicine) => (
                     <tr key={item._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
                         <p className="font-semibold text-secondary-800 font-sans">{item.name}</p>

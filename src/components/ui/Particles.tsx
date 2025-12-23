@@ -57,8 +57,10 @@ export default function Particles() {
         speed: Math.random() * 0.2 + 0.1
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colors]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const animate = useCallback(() => {
     if (!canvasRef.current) return;
     
@@ -106,6 +108,7 @@ export default function Particles() {
     });
 
     requestAnimationFrame(animate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [particles]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
