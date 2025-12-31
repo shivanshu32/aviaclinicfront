@@ -99,7 +99,7 @@ export const whatsappService = {
    * Login to WhatsApp API and get JWT token
    */
   login: async (email: string, password: string): Promise<WhatsAppLoginResponse> => {
-    const response = await whatsappApi.post('/auth/login', { email, password }) as WhatsAppLoginResponse;
+    const response = await whatsappApi.post('/api/auth/login', { email, password }) as WhatsAppLoginResponse;
     if (response.access_token) {
       localStorage.setItem(WHATSAPP_TOKEN_KEY, response.access_token);
     }
@@ -110,7 +110,7 @@ export const whatsappService = {
    * Register a new user on WhatsApp API
    */
   register: async (email: string, password: string, name: string): Promise<{ message: string }> => {
-    return whatsappApi.post('/auth/register', { email, password, name });
+    return whatsappApi.post('/api/auth/register', { email, password, name });
   },
 
   /**
