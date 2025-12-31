@@ -154,7 +154,7 @@ export const whatsappService = {
    * Get QR code for a session
    */
   getQRCode: async (sessionId: string): Promise<WhatsAppQRResponse> => {
-    return whatsappApi.get(`/api/whatsapp/sessions/${sessionId}/qr`);
+    return whatsappApi.post(`/api/whatsapp/sessions/${sessionId}/qr`);
   },
 
   /**
