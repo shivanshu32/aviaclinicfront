@@ -13,9 +13,11 @@ interface AuthContextType {
   tenant: Tenant | null;
   loading: boolean;
   isAuthenticated: boolean;
+  isOnboardingComplete: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  refreshTenant: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -67,14 +69,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
   };
 
+  const refreshTenant = async () => {
+    try {
+      const response = await authService.verify();
+      setTenant(response.data.tenant);
+    } catch (error) {
+      console.error('Failed to refresh tenant:', error);
+    }
+  };
+
+  const isOnboardingComplete = tenant?.onboarding?.completed ?? false;
+
   const value = {
     user,
     tenant,
     loading,
     isAuthenticated,
+    isOnboardingComplete,
     login,
     logout,
     checkAuth,
+    refreshTenant,
   };
 
   return (

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardHeader from '@/components/dashboard/Header';
 import ImpersonationBar from '@/components/dashboard/ImpersonationBar';
+import { onboardingService } from '@/lib/services';
 
 export default function DashboardLayout({
   children,
@@ -14,7 +15,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, tenant } = useAuth();
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isImpersonating, setIsImpersonating] = useState(false);
 
@@ -52,13 +54,41 @@ export default function DashboardLayout({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const checkOnboardingStatus = useCallback(async () => {
+    try {
+      // First check from tenant data in context
+      if (tenant?.onboarding?.completed) {
+        setCheckingOnboarding(false);
+        return;
+      }
+
+      // If not in context, fetch from API
+      const response = await onboardingService.getStatus();
+      if (!response.data.onboarding.completed) {
+        router.push('/onboarding');
+        return;
+      }
+      setCheckingOnboarding(false);
+    } catch (error) {
+      console.error('Failed to check onboarding status:', error);
+      // On error, allow access but log the issue
+      setCheckingOnboarding(false);
+    }
+  }, [tenant, router]);
+
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push('/login');
+      return;
     }
-  }, [loading, isAuthenticated, router]);
 
-  if (loading) {
+    // Check onboarding status when authenticated
+    if (!loading && isAuthenticated) {
+      checkOnboardingStatus();
+    }
+  }, [loading, isAuthenticated, router, checkOnboardingStatus]);
+
+  if (loading || checkingOnboarding) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600" />

@@ -25,6 +25,15 @@ export interface Tenant {
     status: string;
     trialEndsAt: string;
   };
+  onboarding?: {
+    completed: boolean;
+    completedAt: string | null;
+    steps: {
+      clinicDetails: boolean;
+      branding: boolean;
+      doctor: boolean;
+    };
+  };
 }
 
 export interface LoginResponse {

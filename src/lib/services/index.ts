@@ -32,3 +32,6 @@ export type { Bill, BillItem } from './billingService';
 
 export { whatsappService } from './whatsappService';
 export type { WhatsAppSession, WhatsAppLoginResponse, WhatsAppQRResponse, CreateSessionResponse, SendMessageResponse, BackendWhatsAppIntegration } from './whatsappService';
+
+export { onboardingService } from './onboardingService';
+export type { OnboardingStatus, OnboardingSteps, TenantBranding, TenantAddress, OnboardingStatusResponse, ClinicDetailsData, BrandingData, DoctorData } from './onboardingService';
