@@ -14,7 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { onboardingService, OnboardingStatus, TenantAddress, TenantBranding } from '@/lib/services';
+import { onboardingService, OnboardingStatus, TenantAddress } from '@/lib/services';
 
 interface StepProps {
   number: number;
@@ -49,7 +49,7 @@ function StepIndicator({ number, title, description, icon, isActive, isCompleted
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, tenant, isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -467,6 +467,7 @@ export default function OnboardingPage() {
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary-400 transition-colors">
                         {logoPreview ? (
                           <div className="relative">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={logoPreview}
                               alt="Logo preview"
@@ -503,6 +504,7 @@ export default function OnboardingPage() {
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary-400 transition-colors">
                         {headerPreview ? (
                           <div className="relative">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={headerPreview}
                               alt="Header preview"
