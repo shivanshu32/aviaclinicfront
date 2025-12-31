@@ -30,6 +30,7 @@ interface CombinedSession extends WhatsAppSession {
 
 export default function WhatsAppIntegrationPage() {
   const [sessions, setSessions] = useState<CombinedSession[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [backendIntegrations, setBackendIntegrations] = useState<BackendWhatsAppIntegration[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -60,6 +61,7 @@ export default function WhatsAppIntegrationPage() {
   useEffect(() => {
     checkAuth();
     fetchBackendIntegrations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuth = () => {
@@ -513,6 +515,7 @@ export default function WhatsAppIntegrationPage() {
                 </div>
               ) : qrCode ? (
                 <div className="p-4 bg-white border-2 border-gray-200 rounded-2xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
                     alt="WhatsApp QR Code"
