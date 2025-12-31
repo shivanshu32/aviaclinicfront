@@ -25,6 +25,7 @@ const navItems = [
   { path: '/dashboard/billing', icon: Receipt, label: 'Billing' },
   { path: '/dashboard/inventory', icon: Package, label: 'Pharmacy' },
   { path: '/dashboard/services', icon: FlaskConical, label: 'Service Charges' },
+  { path: '/dashboard/whatsapp', icon: MessageSquare, label: 'WhatsApp' },
   { path: '/dashboard/users', icon: Shield, label: 'User Management' },
   { path: '/dashboard/settings', icon: Settings, label: 'Settings', exact: true },
 ];
