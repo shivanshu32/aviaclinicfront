@@ -63,7 +63,8 @@ export interface WhatsAppLoginResponse {
 }
 
 export interface WhatsAppQRResponse {
-  qr_code: string; // Base64 encoded QR image
+  qr_data: string; // Base64 encoded QR image
+  session_id: string;
   expires_at: string;
 }
 

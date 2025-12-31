@@ -184,7 +184,7 @@ export default function WhatsAppIntegrationPage() {
     setQrLoading(true);
     try {
       const response = await whatsappService.getQRCode(sessionId);
-      setQrCode(response.qr_code);
+      setQrCode(response.qr_data);
       startStatusPolling(sessionId);
     } catch (error: unknown) {
       const err = error as { detail?: string; error?: string };
