@@ -29,3 +29,6 @@ export type { ServiceItem } from './serviceItemService';
 
 export { billingService } from './billingService';
 export type { Bill, BillItem } from './billingService';
+
+export { whatsappService } from './whatsappService';
+export type { WhatsAppSession, WhatsAppLoginResponse, WhatsAppQRResponse, CreateSessionResponse, SendMessageResponse, BackendWhatsAppIntegration } from './whatsappService';
