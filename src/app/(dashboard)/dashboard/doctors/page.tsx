@@ -77,7 +77,7 @@ export default function DoctorsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {doctors.map((doctor) => (
-            <div key={doctor._id} className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-6 hover:shadow-md transition-all">
+            <Link key={doctor._id} href={`/dashboard/doctors/${doctor._id}`} className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-6 hover:shadow-md transition-all block">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center">
@@ -90,12 +90,12 @@ export default function DoctorsPage() {
                     <p className="text-sm text-secondary-400 font-sans">{doctor.specialization || 'General'}</p>
                   </div>
                 </div>
-                <Link
-                  href={`/dashboard/doctors/${doctor._id}/edit`}
+                <span
+                  onClick={(e) => { e.preventDefault(); }}
                   className="p-2 text-secondary-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                 >
                   <Edit className="w-4 h-4" />
-                </Link>
+                </span>
               </div>
 
               {doctor.qualification && (
@@ -130,7 +130,7 @@ export default function DoctorsPage() {
                   {doctor.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

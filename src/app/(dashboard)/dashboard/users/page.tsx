@@ -48,6 +48,7 @@ export default function UsersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -176,6 +177,33 @@ export default function UsersPage() {
     }
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+    
+    setDeletingId(userId);
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success('User deleted successfully');
+        setUsers(prev => prev.filter(u => u._id !== userId));
+      } else {
+        toast.error(data.error || 'Failed to delete user');
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      toast.error('Failed to delete user');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -290,10 +318,16 @@ export default function UsersPage() {
                         </button>
                         {user.role !== 'owner' && (
                           <button
-                            className="p-2 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                            onClick={() => handleDeleteUser(user._id)}
+                            disabled={deletingId === user._id}
+                            className="p-2 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"
                             title="Delete"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            {deletingId === user._id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </button>
                         )}
                       </div>

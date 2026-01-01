@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Calendar, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,11 +9,15 @@ import { appointmentService, patientService, doctorService, Patient, Doctor } fr
 
 export default function BookAppointmentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const patientIdFromUrl = searchParams.get('patient');
+  
   const [loading, setLoading] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [searchingPatients, setSearchingPatients] = useState(false);
   const [patientSearch, setPatientSearch] = useState('');
+  const [initialPatientLoading, setInitialPatientLoading] = useState(!!patientIdFromUrl);
   
   const [formData, setFormData] = useState({
     patientId: '',
@@ -27,7 +31,27 @@ export default function BookAppointmentPage() {
 
   useEffect(() => {
     fetchDoctors();
-  }, []);
+    
+    // If patient ID is in URL, fetch and pre-select that patient
+    if (patientIdFromUrl) {
+      fetchPatientById(patientIdFromUrl);
+    }
+  }, [patientIdFromUrl]);
+  
+  const fetchPatientById = async (id: string) => {
+    try {
+      setInitialPatientLoading(true);
+      const response = await patientService.getById(id);
+      const patient = response.data.patient;
+      setSelectedPatient(patient);
+      setFormData(prev => ({ ...prev, patientId: patient._id }));
+    } catch (error) {
+      console.error('Failed to fetch patient:', error);
+      toast.error('Failed to load patient details');
+    } finally {
+      setInitialPatientLoading(false);
+    }
+  };
 
   useEffect(() => {
     const doSearch = async () => {
@@ -119,7 +143,12 @@ export default function BookAppointmentPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Patient</h2>
           
-          {selectedPatient ? (
+          {initialPatientLoading ? (
+            <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+              <Loader2 className="w-5 h-5 animate-spin text-primary-600 mr-2" />
+              <span className="text-gray-600">Loading patient...</span>
+            </div>
+          ) : selectedPatient ? (
             <div className="flex items-center justify-between p-4 bg-primary-50 rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">

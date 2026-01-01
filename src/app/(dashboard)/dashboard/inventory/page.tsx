@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   Package, 
   Plus,
@@ -9,6 +10,7 @@ import {
   Clock,
   Loader2,
   Pill,
+  Eye,
 } from 'lucide-react';
 import { medicineService, Medicine } from '@/lib/services';
 
@@ -94,20 +96,13 @@ export default function InventoryPage() {
           <p className="text-secondary-400 mt-1 font-sans">Manage medicines and stock</p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => alert('Add Medicine feature coming soon!')}
+          <Link
+            href="/dashboard/inventory/add"
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-secondary-700 rounded-xl hover:bg-gray-50 transition-all font-sans font-semibold"
           >
             <Plus className="w-5 h-5" />
             Add Medicine
-          </button>
-          <button
-            onClick={() => alert('Add Stock feature coming soon!')}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-md shadow-primary-500/20 font-sans font-semibold"
-          >
-            <Package className="w-5 h-5" />
-            Add Stock
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -191,13 +186,13 @@ export default function InventoryPage() {
             <div className="text-center py-12">
               <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-secondary-400 font-sans">No medicines found</p>
-              <button
-                onClick={() => alert('Add Medicine feature coming soon!')}
+              <Link
+                href="/dashboard/inventory/add"
                 className="inline-flex items-center gap-2 mt-4 text-primary-600 hover:text-primary-700 font-sans font-semibold"
               >
                 <Plus className="w-4 h-4" />
                 Add your first medicine
-              </button>
+              </Link>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -207,6 +202,7 @@ export default function InventoryPage() {
                     <th className="text-left px-4 py-3 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Medicine</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden md:table-cell">Category</th>
                     <th className="text-right px-4 py-3 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Stock</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -227,6 +223,15 @@ export default function InventoryPage() {
                         }`}>
                           {item.currentStock || 0}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          href={`/dashboard/inventory/${item._id}`}
+                          className="p-2 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all inline-flex"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
                       </td>
                     </tr>
                   ))}
