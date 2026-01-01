@@ -13,6 +13,7 @@ import {
   UserX,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Select from '@/components/ui/Select';
 
 interface UserData {
   _id: string;
@@ -384,15 +385,11 @@ export default function UsersPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">Role</label>
-                <select
+                <Select
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
-                >
-                  {ROLE_OPTIONS.map((role) => (
-                    <option key={role.value} value={role.value}>{role.label}</option>
-                  ))}
-                </select>
+                  onChange={(value) => setFormData({ ...formData, role: value })}
+                  options={ROLE_OPTIONS}
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">Phone <span className="text-secondary-400 font-normal">(optional)</span></label>

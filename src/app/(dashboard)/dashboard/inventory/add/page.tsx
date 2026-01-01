@@ -6,21 +6,33 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, Pill, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { medicineService } from '@/lib/services';
+import Select from '@/components/ui/Select';
 
 const CATEGORIES = [
-  'tablet',
-  'capsule',
-  'syrup',
-  'injection',
-  'cream',
-  'ointment',
-  'drops',
-  'powder',
-  'inhaler',
-  'other',
+  { value: 'tablet', label: 'Tablet' },
+  { value: 'capsule', label: 'Capsule' },
+  { value: 'syrup', label: 'Syrup' },
+  { value: 'injection', label: 'Injection' },
+  { value: 'cream', label: 'Cream' },
+  { value: 'ointment', label: 'Ointment' },
+  { value: 'drops', label: 'Drops' },
+  { value: 'powder', label: 'Powder' },
+  { value: 'inhaler', label: 'Inhaler' },
+  { value: 'other', label: 'Other' },
 ];
 
-const UNITS = ['tablets', 'capsules', 'ml', 'mg', 'gm', 'strips', 'bottles', 'vials', 'tubes', 'pcs'];
+const UNITS = [
+  { value: 'tablets', label: 'Tablets' },
+  { value: 'capsules', label: 'Capsules' },
+  { value: 'ml', label: 'ML' },
+  { value: 'mg', label: 'MG' },
+  { value: 'gm', label: 'GM' },
+  { value: 'strips', label: 'Strips' },
+  { value: 'bottles', label: 'Bottles' },
+  { value: 'vials', label: 'Vials' },
+  { value: 'tubes', label: 'Tubes' },
+  { value: 'pcs', label: 'Pcs' },
+];
 
 export default function AddMedicinePage() {
   const router = useRouter();
@@ -118,32 +130,24 @@ export default function AddMedicinePage() {
             <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">
               Category <span className="text-red-500">*</span>
             </label>
-            <select
+            <Select
               name="category"
               value={formData.category}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700 capitalize"
-            >
-              {CATEGORIES.map(cat => (
-                <option key={cat} value={cat} className="capitalize">{cat}</option>
-              ))}
-            </select>
+              onChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+              options={CATEGORIES}
+            />
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">
               Unit
             </label>
-            <select
+            <Select
               name="unit"
               value={formData.unit}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
-            >
-              {UNITS.map(unit => (
-                <option key={unit} value={unit}>{unit}</option>
-              ))}
-            </select>
+              onChange={(value) => setFormData(prev => ({ ...prev, unit: value }))}
+              options={UNITS}
+            />
           </div>
 
           <div>

@@ -16,6 +16,14 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { serviceItemService, ServiceItem } from '@/lib/services';
+import Select from '@/components/ui/Select';
+
+const CATEGORY_OPTIONS = [
+  { value: 'laboratory', label: 'Laboratory' },
+  { value: 'radiology', label: 'Radiology' },
+  { value: 'procedure', label: 'Procedure' },
+  { value: 'other', label: 'Other' },
+];
 
 const categories = [
   { id: '', label: 'All Services', icon: FlaskConical, color: 'gray' },
@@ -299,16 +307,11 @@ export default function ServiceChargesPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">Category</label>
-                <select
+                <Select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
-                >
-                  <option value="laboratory">Laboratory</option>
-                  <option value="radiology">Radiology</option>
-                  <option value="procedure">Procedure</option>
-                  <option value="other">Other</option>
-                </select>
+                  onChange={(value) => setFormData({ ...formData, category: value })}
+                  options={CATEGORY_OPTIONS}
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">Rate (₹)</label>

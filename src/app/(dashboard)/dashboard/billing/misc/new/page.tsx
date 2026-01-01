@@ -6,6 +6,18 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, FlaskConical, Save, X, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { billingService, patientService, Patient, serviceItemService, ServiceItem } from '@/lib/services';
+import Select from '@/components/ui/Select';
+
+const DISCOUNT_TYPE_OPTIONS = [
+  { value: 'fixed', label: 'Fixed Amount' },
+  { value: 'percentage', label: 'Percentage' },
+];
+
+const PAYMENT_MODE_OPTIONS = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'card', label: 'Card' },
+  { value: 'upi', label: 'UPI' },
+];
 
 export default function NewMiscBillPage() {
   const router = useRouter();
@@ -293,14 +305,11 @@ export default function NewMiscBillPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-secondary-700 mb-1.5">Discount Type</label>
-              <select
+              <Select
                 value={formData.discountType}
-                onChange={(e) => setFormData(prev => ({ ...prev, discountType: e.target.value as 'percentage' | 'fixed' }))}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl"
-              >
-                <option value="fixed">Fixed Amount</option>
-                <option value="percentage">Percentage</option>
-              </select>
+                onChange={(value) => setFormData(prev => ({ ...prev, discountType: value as 'percentage' | 'fixed' }))}
+                options={DISCOUNT_TYPE_OPTIONS}
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-secondary-700 mb-1.5">Discount Value</label>
@@ -316,15 +325,11 @@ export default function NewMiscBillPage() {
 
           <div>
             <label className="block text-sm font-semibold text-secondary-700 mb-1.5">Payment Mode</label>
-            <select
+            <Select
               value={formData.paymentMode}
-              onChange={(e) => setFormData(prev => ({ ...prev, paymentMode: e.target.value as 'cash' | 'card' | 'upi' }))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl"
-            >
-              <option value="cash">Cash</option>
-              <option value="card">Card</option>
-              <option value="upi">UPI</option>
-            </select>
+              onChange={(value) => setFormData(prev => ({ ...prev, paymentMode: value as 'cash' | 'card' | 'upi' }))}
+              options={PAYMENT_MODE_OPTIONS}
+            />
           </div>
 
           <div>

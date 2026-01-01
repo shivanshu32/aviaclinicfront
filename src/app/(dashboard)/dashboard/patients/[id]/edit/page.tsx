@@ -6,6 +6,25 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { patientService } from '@/lib/services';
+import Select from '@/components/ui/Select';
+
+const GENDER_OPTIONS = [
+  { value: 'Male', label: 'Male' },
+  { value: 'Female', label: 'Female' },
+  { value: 'Other', label: 'Other' },
+];
+
+const BLOOD_GROUP_OPTIONS = [
+  { value: '', label: 'Select blood group' },
+  { value: 'A+', label: 'A+' },
+  { value: 'A-', label: 'A-' },
+  { value: 'B+', label: 'B+' },
+  { value: 'B-', label: 'B-' },
+  { value: 'AB+', label: 'AB+' },
+  { value: 'AB-', label: 'AB-' },
+  { value: 'O+', label: 'O+' },
+  { value: 'O-', label: 'O-' },
+];
 
 export default function EditPatientPage() {
   const params = useParams();
@@ -204,16 +223,12 @@ export default function EditPatientPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Gender <span className="text-red-500">*</span>
               </label>
-              <select
+              <Select
                 name="gender"
                 value={formData.gender}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
+                onChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}
+                options={GENDER_OPTIONS}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -242,22 +257,13 @@ export default function EditPatientPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Blood Group</label>
-              <select
+              <Select
                 name="bloodGroup"
                 value={formData.bloodGroup}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="">Select blood group</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-              </select>
+                onChange={(value) => setFormData(prev => ({ ...prev, bloodGroup: value }))}
+                options={BLOOD_GROUP_OPTIONS}
+                placeholder="Select blood group"
+              />
             </div>
           </div>
         </div>

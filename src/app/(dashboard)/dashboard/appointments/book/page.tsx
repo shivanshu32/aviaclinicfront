@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, Calendar, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { appointmentService, patientService, doctorService, Patient, Doctor } from '@/lib/services';
+import Select from '@/components/ui/Select';
 
 export default function BookAppointmentPage() {
   const router = useRouter();
@@ -229,18 +230,18 @@ export default function BookAppointmentPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Doctor <span className="text-red-500">*</span>
               </label>
-              <select
+              <Select
                 value={formData.doctorId}
-                onChange={(e) => setFormData(prev => ({ ...prev, doctorId: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="">Select doctor</option>
-                {doctors.map((doctor) => (
-                  <option key={doctor._id} value={doctor._id}>
-                    {doctor.name} {doctor.specialization ? `(${doctor.specialization})` : ''}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setFormData(prev => ({ ...prev, doctorId: value }))}
+                options={[
+                  { value: '', label: 'Select doctor' },
+                  ...doctors.map((doctor) => ({
+                    value: doctor._id,
+                    label: `${doctor.name}${doctor.specialization ? ` (${doctor.specialization})` : ''}`
+                  }))
+                ]}
+                placeholder="Select doctor"
+              />
             </div>
 
             <div>
