@@ -97,13 +97,13 @@ export default function BillingPage() {
           </h1>
           <p className="text-secondary-400 mt-1 font-sans">Manage invoices and billing</p>
         </div>
-        <Link
-          href={`/dashboard/billing/${activeType}/new`}
+        <button
+          onClick={() => alert('New Bill feature coming soon!')}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-md shadow-primary-500/20 font-sans font-semibold"
         >
           <Plus className="w-5 h-5" />
           New Bill
-        </Link>
+        </button>
       </div>
 
       {/* Bill Type Tabs */}
@@ -163,13 +163,13 @@ export default function BillingPage() {
           <div className="text-center py-12">
             <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-secondary-400 font-sans">No bills found</p>
-            <Link
-              href={`/dashboard/billing/${activeType}/new`}
+            <button
+              onClick={() => alert('New Bill feature coming soon!')}
               className="inline-flex items-center gap-2 mt-4 text-primary-600 hover:text-primary-700 font-sans font-semibold"
             >
               <Plus className="w-4 h-4" />
               Create your first bill
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -207,13 +207,13 @@ export default function BillingPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/dashboard/billing/${activeType}/${bill._id}`}
+                        <button
+                          onClick={() => alert('View Bill feature coming soon!')}
                           className="p-2 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
-                        </Link>
+                        </button>
                         <button
                           className="p-2 text-secondary-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                           title="Print"

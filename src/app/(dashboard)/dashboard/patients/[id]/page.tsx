@@ -293,18 +293,18 @@ export default function PatientDetailPage() {
             <h3 className="text-lg font-semibold text-secondary-800 mb-4">Quick Actions</h3>
             <div className="space-y-2">
               <Link
-                href={`/dashboard/appointments/add?patient=${patient._id}`}
+                href={`/dashboard/appointments/book?patient=${patient._id}`}
                 className="w-full flex items-center gap-2 px-4 py-2.5 text-secondary-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all font-sans"
               >
                 <Calendar className="w-4 h-4" />
                 Book Appointment
               </Link>
               <Link
-                href={`/dashboard/billing/add?patient=${patient._id}`}
+                href={`/dashboard/billing`}
                 className="w-full flex items-center gap-2 px-4 py-2.5 text-secondary-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all font-sans"
               >
                 <FileText className="w-4 h-4" />
-                Create Bill
+                View Billing
               </Link>
             </div>
           </div>

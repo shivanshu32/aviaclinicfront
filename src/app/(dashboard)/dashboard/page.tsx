@@ -215,24 +215,24 @@ export default function DashboardPage() {
           <p className="text-sm text-secondary-400 font-sans">Schedule visit</p>
         </Link>
         <Link 
-          href="/dashboard/billing/opd/new" 
+          href="/dashboard/billing" 
           className="p-4 bg-purple-50 border border-purple-100 rounded-2xl hover:bg-purple-100 transition-all text-left group hover:shadow-md"
         >
           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-purple-500/20">
             <Receipt className="w-5 h-5 text-white" />
           </div>
-          <p className="font-heading font-semibold text-secondary-800">New Bill</p>
-          <p className="text-sm text-secondary-400 font-sans">Create invoice</p>
+          <p className="font-heading font-semibold text-secondary-800">Billing</p>
+          <p className="text-sm text-secondary-400 font-sans">Manage invoices</p>
         </Link>
         <Link 
-          href="/dashboard/inventory/stock" 
+          href="/dashboard/inventory" 
           className="p-4 bg-orange-50 border border-orange-100 rounded-2xl hover:bg-orange-100 transition-all text-left group hover:shadow-md"
         >
           <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-orange-500/20">
             <Package className="w-5 h-5 text-white" />
           </div>
-          <p className="font-heading font-semibold text-secondary-800">Add Stock</p>
-          <p className="text-sm text-secondary-400 font-sans">Update inventory</p>
+          <p className="font-heading font-semibold text-secondary-800">Inventory</p>
+          <p className="text-sm text-secondary-400 font-sans">Manage stock</p>
         </Link>
       </div>
 
