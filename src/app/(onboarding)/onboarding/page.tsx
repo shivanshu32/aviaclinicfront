@@ -38,10 +38,10 @@ function StepIndicator({ number, title, description, icon, isActive, isCompleted
         {isCompleted ? <Check className="w-5 h-5" /> : icon}
       </div>
       <div>
-        <p className={`font-medium ${isActive ? 'text-primary-700' : isCompleted ? 'text-green-700' : 'text-gray-600'}`}>
+        <p className={`font-medium tracking-tight ${isActive ? 'text-primary-700' : isCompleted ? 'text-green-700' : 'text-gray-600'}`}>
           Step {number}: {title}
         </p>
-        <p className="text-sm text-gray-500">{description}</p>
+        <p className="text-sm text-gray-500 font-light">{description}</p>
       </div>
     </div>
   );
@@ -300,8 +300,8 @@ export default function OnboardingPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome to Avia Wellness</h1>
-          <p className="mt-2 text-gray-600">Let&apos;s set up your clinic in a few simple steps</p>
+          <h1 className="text-3xl font-light tracking-tight text-gray-900">Welcome to <span className="font-semibold">Avia Wellness</span></h1>
+          <p className="mt-2 text-gray-500 font-light">Let&apos;s set up your clinic in a few simple steps</p>
         </div>
 
         {/* Error Alert */}
@@ -337,15 +337,10 @@ export default function OnboardingPage() {
             <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
               {/* Step 1: Clinic Details */}
               {currentStep === 1 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Clinic Details</h2>
-                    <p className="text-gray-500 mt-1">Tell us about your clinic</p>
-                  </div>
-
+                <div className="space-y-5">
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
                         Clinic Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -359,7 +354,7 @@ export default function OnboardingPage() {
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Phone</label>
                         <input
                           type="tel"
                           value={phone}
@@ -369,7 +364,7 @@ export default function OnboardingPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
                         <input
                           type="email"
                           value={email}
@@ -381,7 +376,7 @@ export default function OnboardingPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1</label>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Address Line 1</label>
                       <input
                         type="text"
                         value={address.line1}
@@ -392,7 +387,7 @@ export default function OnboardingPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Address Line 2</label>
                       <input
                         type="text"
                         value={address.line2}
@@ -404,7 +399,7 @@ export default function OnboardingPage() {
 
                     <div className="grid md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">City</label>
                         <input
                           type="text"
                           value={address.city}
@@ -414,7 +409,7 @@ export default function OnboardingPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">State</label>
                         <input
                           type="text"
                           value={address.state}
@@ -424,7 +419,7 @@ export default function OnboardingPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Pincode</label>
                         <input
                           type="text"
                           value={address.pincode}
@@ -452,12 +447,7 @@ export default function OnboardingPage() {
 
               {/* Step 2: Branding */}
               {currentStep === 2 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Branding</h2>
-                    <p className="text-gray-500 mt-1">Upload your clinic logo and bill header image</p>
-                  </div>
-
+                <div className="space-y-5">
                   <div className="grid md:grid-cols-2 gap-6">
                     {/* Logo Upload */}
                     <div>
@@ -560,17 +550,12 @@ export default function OnboardingPage() {
 
               {/* Step 3: Add Doctor */}
               {currentStep === 3 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Add Doctor</h2>
-                    <p className="text-gray-500 mt-1">Add at least one doctor to your clinic</p>
-                    {doctorCount > 0 && (
-                      <p className="text-green-600 text-sm mt-1">
-                        ✓ {doctorCount} doctor{doctorCount > 1 ? 's' : ''} added
-                      </p>
-                    )}
-                  </div>
-
+                <div className="space-y-5">
+                  {doctorCount > 0 && (
+                    <p className="text-green-600 text-sm font-medium">
+                      ✓ {doctorCount} doctor{doctorCount > 1 ? 's' : ''} added
+                    </p>
+                  )}
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
