@@ -21,6 +21,20 @@ body {
     @apply border-gray-200;
   }
 
+  /* Apply Poppins font to form elements */
+  input,
+  textarea,
+  select,
+  label,
+  button {
+    font-family: var(--font-poppins), system-ui, sans-serif;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    font-family: var(--font-poppins), system-ui, sans-serif;
+  }
+
   ::-webkit-scrollbar {
     @apply w-2 h-2;
   }
