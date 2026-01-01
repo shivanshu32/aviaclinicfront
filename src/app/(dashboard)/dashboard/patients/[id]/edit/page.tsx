@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { patientService, Patient } from '@/lib/services';
+import { patientService } from '@/lib/services';
 
 export default function EditPatientPage() {
   const params = useParams();
