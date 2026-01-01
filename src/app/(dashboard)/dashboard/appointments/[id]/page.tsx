@@ -237,14 +237,18 @@ export default function AppointmentDetailPage() {
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
                   <p className="font-semibold text-secondary-800">No Bill Generated</p>
-                  <p className="text-sm text-secondary-500">Create a bill for this appointment</p>
+                  <p className="text-sm text-secondary-500">
+                    {appointment.status === 'scheduled' ? 'Check-in patient first to generate bill' : 'Create a bill for this appointment'}
+                  </p>
                 </div>
-                <Link
-                  href={`/dashboard/billing/opd/new?patient=${appointment.patientId}`}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all font-medium"
-                >
-                  Create Bill
-                </Link>
+                {appointment.status !== 'scheduled' && (
+                  <Link
+                    href={`/dashboard/billing/opd/new?patient=${appointment.patientId}&appointment=${appointment._id}&doctor=${appointment.doctorId}`}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all font-medium"
+                  >
+                    Create Bill
+                  </Link>
+                )}
               </div>
             )}
           </div>
@@ -282,9 +286,9 @@ export default function AppointmentDetailPage() {
                 </button>
               )}
 
-              {!appointment.billing?.hasBill && (
+              {!appointment.billing?.hasBill && appointment.status !== 'scheduled' && (
                 <Link
-                  href={`/dashboard/billing/opd/new?patient=${appointment.patientId}`}
+                  href={`/dashboard/billing/opd/new?patient=${appointment.patientId}&appointment=${appointment._id}&doctor=${appointment.doctorId}`}
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 text-secondary-700 rounded-xl hover:bg-gray-50 transition-all font-medium"
                 >
                   <Receipt className="w-5 h-5" />

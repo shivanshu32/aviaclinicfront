@@ -23,6 +23,8 @@ export default function NewOPDBillPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const patientIdFromUrl = searchParams.get('patient');
+  const appointmentIdFromUrl = searchParams.get('appointment');
+  const doctorIdFromUrl = searchParams.get('doctor');
 
   const [saving, setSaving] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -52,9 +54,20 @@ export default function NewOPDBillPage() {
         setDoctors(doctorsRes.data.doctors || []);
         setServices(servicesRes.data?.services || []);
         
-        if (doctorsRes.data.doctors?.length > 0) {
-          setFormData(prev => ({ ...prev, doctorId: doctorsRes.data.doctors[0]._id }));
-        }
+        // Set doctor from URL or default to first doctor
+        const selectedDoctorId = doctorIdFromUrl || (doctorsRes.data.doctors?.length > 0 ? doctorsRes.data.doctors[0]._id : '');
+        const selectedDoctor = doctorsRes.data.doctors?.find(d => d._id === selectedDoctorId);
+        
+        // Pre-populate consultation charges if coming from appointment
+        const initialItems = appointmentIdFromUrl && selectedDoctor
+          ? [{ description: 'Consultation Charges', quantity: 1, rate: selectedDoctor.consultationFee || 0 }]
+          : [{ description: '', quantity: 1, rate: 0 }];
+        
+        setFormData(prev => ({ 
+          ...prev, 
+          doctorId: selectedDoctorId,
+          items: initialItems
+        }));
 
         if (patientIdFromUrl) {
           const patientRes = await patientService.getById(patientIdFromUrl);
@@ -67,7 +80,7 @@ export default function NewOPDBillPage() {
       }
     };
     loadInitialData();
-  }, [patientIdFromUrl]);
+  }, [patientIdFromUrl, appointmentIdFromUrl, doctorIdFromUrl]);
 
   const searchPatients = async (query: string) => {
     if (!query.trim()) {
