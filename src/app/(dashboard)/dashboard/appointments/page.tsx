@@ -225,7 +225,11 @@ export default function AppointmentsPage() {
                         )}
                         {apt.status !== 'completed' && apt.status !== 'cancelled' && (
                           <button
-                            onClick={() => handleStatusUpdate(apt._id, 'cancelled')}
+                            onClick={() => {
+                              if (confirm('Are you sure you want to cancel this appointment?')) {
+                                handleStatusUpdate(apt._id, 'cancelled');
+                              }
+                            }}
                             disabled={isUpdating}
                             className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
                             title="Cancel"
