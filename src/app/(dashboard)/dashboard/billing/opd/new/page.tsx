@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Receipt, Save, Plus, X, Search } from 'lucide-react';
+import { ArrowLeft, Loader2, Receipt, Save, X, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { billingService, patientService, Patient, doctorService, Doctor, serviceItemService, ServiceItem } from '@/lib/services';
 

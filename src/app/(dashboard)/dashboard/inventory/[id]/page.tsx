@@ -14,7 +14,6 @@ import {
   Plus,
   IndianRupee,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { medicineService, Medicine, StockBatch } from '@/lib/services';
 
 export default function MedicineDetailPage() {
