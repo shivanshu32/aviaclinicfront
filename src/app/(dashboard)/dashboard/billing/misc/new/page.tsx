@@ -158,7 +158,7 @@ export default function NewMiscBillPage() {
     }
   };
 
-  const inputClass = "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500";
+  const inputClass = "w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500";
 
   if (initialLoading) {
     return <div className="flex items-center justify-center h-full"><Loader2 className="w-6 h-6 animate-spin text-purple-600" /></div>;
@@ -173,35 +173,35 @@ export default function NewMiscBillPage() {
         </Link>
         <FlaskConical className="w-5 h-5 text-purple-600" />
         <h1 className="text-lg font-semibold text-gray-900">New Lab/Misc Bill</h1>
-        <div className="ml-auto bg-purple-50 px-3 py-1 rounded-lg">
-          <span className="text-sm font-semibold text-purple-700">₹{calculateTotal()}</span>
+        <div className="ml-auto bg-purple-50 px-4 py-1.5 rounded-xl">
+          <span className="font-semibold text-purple-700">₹{calculateTotal()}</span>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
-        <div className="flex-1 p-4 bg-white space-y-4 overflow-y-auto">
+        <div className="flex-1 p-6 bg-white space-y-5 overflow-y-auto">
           {/* Patient */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Patient *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Patient *</label>
             {selectedPatient ? (
-              <div className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{selectedPatient.name}</p>
-                  <p className="text-xs text-gray-500">{selectedPatient.patientId} • {selectedPatient.phone}</p>
+                  <p className="font-medium text-gray-900">{selectedPatient.name}</p>
+                  <p className="text-sm text-gray-500">{selectedPatient.patientId} • {selectedPatient.phone}</p>
                 </div>
-                <button type="button" onClick={() => setSelectedPatient(null)} className="p-1 text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
+                <button type="button" onClick={() => setSelectedPatient(null)} className="p-1.5 text-gray-400 hover:text-red-500"><X className="w-5 h-5" /></button>
               </div>
             ) : (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type="text" value={patientSearch} onChange={(e) => { setPatientSearch(e.target.value); searchPatients(e.target.value); }} placeholder="Search patient..." className={`${inputClass} pl-9`} />
-                {searchingPatients && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-gray-400" />}
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input type="text" value={patientSearch} onChange={(e) => { setPatientSearch(e.target.value); searchPatients(e.target.value); }} placeholder="Search patient by name or phone..." className={`${inputClass} pl-11`} />
+                {searchingPatients && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 animate-spin text-gray-400" />}
                 {patients.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                     {patients.map(p => (
-                      <button key={p._id} type="button" onClick={() => { setSelectedPatient(p); setPatients([]); setPatientSearch(''); }} className="w-full p-2 text-left hover:bg-gray-50">
-                        <p className="text-sm font-medium">{p.name}</p>
-                        <p className="text-xs text-gray-500">{p.phone}</p>
+                      <button key={p._id} type="button" onClick={() => { setSelectedPatient(p); setPatients([]); setPatientSearch(''); }} className="w-full p-3 text-left hover:bg-gray-50">
+                        <p className="font-medium">{p.name}</p>
+                        <p className="text-sm text-gray-500">{p.phone}</p>
                       </button>
                     ))}
                   </div>
@@ -213,55 +213,55 @@ export default function NewMiscBillPage() {
           {/* Items */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-gray-600">Lab Tests / Services</label>
-              <button type="button" onClick={addItem} className="text-xs text-purple-600 font-medium">+ Add</button>
+              <label className="text-sm font-medium text-gray-700">Lab Tests / Services</label>
+              <button type="button" onClick={addItem} className="text-sm text-purple-600 font-medium">+ Add Item</button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {formData.items.map((item, idx) => (
-                <div key={idx} className="flex gap-2 items-center">
+                <div key={idx} className="flex gap-3 items-center">
                   <div className="flex-1">
-                    <select value="" onChange={(e) => selectService(idx, e.target.value)} className={`${inputClass} mb-1`}>
+                    <select value="" onChange={(e) => selectService(idx, e.target.value)} className={`${inputClass} mb-2`}>
                       <option value="">Select service</option>
                       {services.filter(s => s.category === 'laboratory' || s.category === 'radiology').map(s => <option key={s._id} value={s._id}>{s.name} - ₹{s.rate}</option>)}
                     </select>
                     <input type="text" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} placeholder="Description" className={inputClass} />
                   </div>
-                  <input type="number" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)} min="1" className="w-14 px-2 py-2 text-sm border border-gray-200 rounded-lg" />
-                  <input type="number" value={item.rate} onChange={(e) => updateItem(idx, 'rate', parseFloat(e.target.value) || 0)} min="0" className="w-20 px-2 py-2 text-sm border border-gray-200 rounded-lg" />
-                  {formData.items.length > 1 && <button type="button" onClick={() => removeItem(idx)} className="p-1 text-red-500"><X className="w-4 h-4" /></button>}
+                  <input type="number" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)} min="1" className="w-20 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Qty" />
+                  <input type="number" value={item.rate} onChange={(e) => updateItem(idx, 'rate', parseFloat(e.target.value) || 0)} min="0" className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Rate" />
+                  {formData.items.length > 1 && <button type="button" onClick={() => removeItem(idx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><X className="w-5 h-5" /></button>}
                 </div>
               ))}
             </div>
           </div>
 
           {/* Discount & Payment */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Discount</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Discount Type</label>
               <Select value={formData.discountType} onChange={(v) => setFormData(p => ({ ...p, discountType: v as 'percentage' | 'fixed' }))} options={DISCOUNT_TYPE_OPTIONS} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Value</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Discount Value</label>
               <input type="number" value={formData.discountValue} onChange={(e) => setFormData(p => ({ ...p, discountValue: parseFloat(e.target.value) || 0 }))} min="0" className={inputClass} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Payment</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Payment Mode</label>
               <Select value={formData.paymentMode} onChange={(v) => setFormData(p => ({ ...p, paymentMode: v as 'cash' | 'card' | 'upi' }))} options={PAYMENT_MODE_OPTIONS} />
             </div>
           </div>
 
           {/* Summary */}
-          <div className="bg-gray-50 rounded-lg p-3 text-sm">
-            <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>₹{calculateSubtotal()}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Discount</span><span className="text-red-600">-₹{calculateDiscount()}</span></div>
-            <div className="flex justify-between font-semibold border-t border-gray-200 pt-2 mt-2"><span>Total</span><span className="text-purple-600">₹{calculateTotal()}</span></div>
+          <div className="bg-gray-50 rounded-xl p-4">
+            <div className="flex justify-between mb-2"><span className="text-gray-500">Subtotal</span><span className="font-medium">₹{calculateSubtotal()}</span></div>
+            <div className="flex justify-between mb-2"><span className="text-gray-500">Discount</span><span className="font-medium text-red-600">-₹{calculateDiscount()}</span></div>
+            <div className="flex justify-between font-semibold text-lg border-t border-gray-200 pt-3 mt-2"><span>Total</span><span className="text-purple-600">₹{calculateTotal()}</span></div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t bg-gray-50">
-          <Link href="/dashboard/billing" className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</Link>
-          <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-gray-50">
+          <Link href="/dashboard/billing" className="px-4 py-2.5 font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50">Cancel</Link>
+          <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2.5 font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Create Bill
           </button>

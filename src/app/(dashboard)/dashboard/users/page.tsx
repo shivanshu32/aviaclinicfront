@@ -344,36 +344,36 @@ export default function UsersPage() {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <h2 className="text-base font-semibold text-gray-900">{editingUser ? 'Edit User' : 'Add New User'}</h2>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900">{editingUser ? 'Edit User' : 'Add New User'}</h2>
             </div>
-            <form onSubmit={handleSubmit} className="p-4 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
-                  <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Name" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
+                  <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500" placeholder="Full name" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
-                  <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Email" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                  <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500" placeholder="Email address" />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Password {editingUser && <span className="text-gray-400">(blank = keep)</span>}</label>
-                  <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder={editingUser ? '••••••••' : 'Password'} />
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Password {editingUser && <span className="text-gray-400 font-normal">(leave blank to keep current)</span>}</label>
+                  <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500" placeholder={editingUser ? '••••••••' : 'Password'} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Role</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
                   <Select value={formData.role} onChange={(v) => setFormData({ ...formData, role: v })} options={ROLE_OPTIONS} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
-                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Phone" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500" placeholder="Phone number" />
                 </div>
               </div>
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={handleCloseModal} className="flex-1 px-3 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="flex-1 px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50">
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={handleCloseModal} className="flex-1 px-4 py-2.5 font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Cancel</button>
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 disabled:opacity-50">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : (editingUser ? 'Update' : 'Create')}
                 </button>
               </div>

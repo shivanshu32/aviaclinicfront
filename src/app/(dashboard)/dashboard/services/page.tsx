@@ -285,33 +285,33 @@ export default function ServiceChargesPage() {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-gray-900">{editingService ? 'Edit Service' : 'Add New Service'}</h2>
-              <button onClick={handleCloseModal} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-4 h-4 text-gray-400" /></button>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">{editingService ? 'Edit Service' : 'Add New Service'}</h2>
+              <button onClick={handleCloseModal} className="p-1.5 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-400" /></button>
             </div>
-            <form onSubmit={handleSubmit} className="p-4 space-y-3">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Service Name</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="e.g., Blood Test - CBC" />
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Service Name</label>
+                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500" placeholder="e.g., Blood Test - CBC" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
                   <Select value={formData.category} onChange={(v) => setFormData({ ...formData, category: v })} options={CATEGORY_OPTIONS} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Rate (₹)</label>
-                  <input type="number" value={formData.rate} onChange={(e) => setFormData({ ...formData, rate: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Rate" min="0" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Rate (₹)</label>
+                  <input type="number" value={formData.rate} onChange={(e) => setFormData({ ...formData, rate: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500" placeholder="Rate" min="0" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
-                <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500" placeholder="Brief description (optional)" />
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                <input type="text" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500" placeholder="Brief description (optional)" />
               </div>
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={handleCloseModal} className="flex-1 px-3 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="flex-1 px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50">
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={handleCloseModal} className="flex-1 px-4 py-2.5 font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Cancel</button>
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 disabled:opacity-50">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : (editingService ? 'Update' : 'Create')}
                 </button>
               </div>

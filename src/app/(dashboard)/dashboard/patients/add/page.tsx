@@ -107,7 +107,7 @@ export default function AddPatientPage() {
     }
   };
 
-  const inputClass = "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500";
+  const inputClass = "w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500";
 
   return (
     <div className="h-full flex flex-col -m-4 sm:-m-6">
@@ -128,7 +128,7 @@ export default function AddPatientPage() {
             <button
               type="button"
               onClick={() => currentStep > step.id && setCurrentStep(step.id)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 currentStep === step.id
                   ? 'bg-primary-600 text-white'
                   : currentStep > step.id
@@ -136,42 +136,42 @@ export default function AddPatientPage() {
                   : 'bg-gray-200 text-gray-500'
               }`}
             >
-              {currentStep > step.id ? <Check className="w-3.5 h-3.5" /> : <step.icon className="w-3.5 h-3.5" />}
+              {currentStep > step.id ? <Check className="w-4 h-4" /> : <step.icon className="w-4 h-4" />}
               <span className="hidden sm:inline">{step.title}</span>
             </button>
-            {idx < STEPS.length - 1 && <div className="w-6 h-0.5 bg-gray-300 mx-1" />}
+            {idx < STEPS.length - 1 && <div className="w-8 h-0.5 bg-gray-300 mx-1" />}
           </div>
         ))}
       </div>
 
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 p-4 bg-white">
+        <div className="flex-1 p-6 bg-white">
           {/* Step 1: Basic Info */}
           {currentStep === 1 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="col-span-2 sm:col-span-3">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Full Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name *</label>
                 <input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} placeholder="Patient name" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Age *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Age *</label>
                 <input type="number" name="age" value={formData.age} onChange={handleChange} min="0" max="150" className={inputClass} placeholder="Age" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Gender *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Gender *</label>
                 <Select value={formData.gender} onChange={(v) => setFormData(p => ({ ...p, gender: v }))} options={GENDER_OPTIONS} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Blood Group</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Blood Group</label>
                 <Select value={formData.bloodGroup} onChange={(v) => setFormData(p => ({ ...p, bloodGroup: v }))} options={BLOOD_GROUP_OPTIONS} />
               </div>
               <div className="col-span-2 sm:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Phone *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone *</label>
                 <input type="tel" name="phone" value={formData.phone} onChange={handleChange} maxLength={10} className={inputClass} placeholder="10-digit phone" />
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                 <input type="email" name="email" value={formData.email} onChange={handleChange} className={inputClass} placeholder="Email" />
               </div>
             </div>
@@ -179,25 +179,25 @@ export default function AddPatientPage() {
 
           {/* Step 2: Address */}
           {currentStep === 2 && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Address Line 1</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Address Line 1</label>
                 <input type="text" name="address.line1" value={formData.address.line1} onChange={handleChange} className={inputClass} placeholder="Street address" />
               </div>
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Address Line 2</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Address Line 2</label>
                 <input type="text" name="address.line2" value={formData.address.line2} onChange={handleChange} className={inputClass} placeholder="Apt, suite, etc." />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">City</label>
                 <input type="text" name="address.city" value={formData.address.city} onChange={handleChange} className={inputClass} placeholder="City" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">State</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">State</label>
                 <input type="text" name="address.state" value={formData.address.state} onChange={handleChange} className={inputClass} placeholder="State" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Pincode</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Pincode</label>
                 <input type="text" name="address.pincode" value={formData.address.pincode} onChange={handleChange} maxLength={6} className={inputClass} placeholder="Pincode" />
               </div>
             </div>
@@ -205,13 +205,13 @@ export default function AddPatientPage() {
 
           {/* Step 3: Medical */}
           {currentStep === 3 && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Allergies</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Allergies</label>
                 <input type="text" name="allergies" value={formData.allergies} onChange={handleChange} className={inputClass} placeholder="Comma-separated allergies" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Medical History</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Medical History</label>
                 <textarea name="medicalHistory" value={formData.medicalHistory} onChange={handleChange} rows={4} className={inputClass} placeholder="Relevant medical history" />
               </div>
             </div>
@@ -219,17 +219,17 @@ export default function AddPatientPage() {
 
           {/* Step 4: Emergency Contact */}
           {currentStep === 4 && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Contact Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Name</label>
                 <input type="text" name="emergencyContact.name" value={formData.emergencyContact.name} onChange={handleChange} className={inputClass} placeholder="Name" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Contact Phone</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Phone</label>
                 <input type="tel" name="emergencyContact.phone" value={formData.emergencyContact.phone} onChange={handleChange} maxLength={10} className={inputClass} placeholder="Phone" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Relation</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Relation</label>
                 <input type="text" name="emergencyContact.relation" value={formData.emergencyContact.relation} onChange={handleChange} className={inputClass} placeholder="e.g., Spouse" />
               </div>
             </div>
@@ -237,20 +237,20 @@ export default function AddPatientPage() {
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between gap-3 px-4 py-3 border-t bg-gray-50">
-          <button type="button" onClick={prevStep} disabled={currentStep === 1} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40">
+        <div className="flex items-center justify-between gap-3 px-6 py-4 border-t bg-gray-50">
+          <button type="button" onClick={prevStep} disabled={currentStep === 1} className="flex items-center gap-2 px-4 py-2.5 font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-40">
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
-          <div className="flex gap-2">
-            <Link href="/dashboard/patients" className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+          <div className="flex gap-3">
+            <Link href="/dashboard/patients" className="px-4 py-2.5 font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50">
               Cancel
             </Link>
             {currentStep < 4 ? (
-              <button type="button" onClick={nextStep} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700">
+              <button type="button" onClick={nextStep} className="flex items-center gap-2 px-4 py-2.5 font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700">
                 Next <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
-              <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50">
+              <button type="submit" disabled={loading} className="flex items-center gap-2 px-4 py-2.5 font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 disabled:opacity-50">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Save Patient
               </button>
