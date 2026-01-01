@@ -75,124 +75,55 @@ export default function AddMedicinePage() {
     }
   };
 
+  const inputClass = "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500";
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="h-full flex flex-col -m-4 sm:-m-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link
-          href="/dashboard/inventory"
-          className="p-2 text-secondary-400 hover:text-secondary-600 hover:bg-gray-100 rounded-xl transition-all"
-        >
-          <ArrowLeft className="w-5 h-5" />
+      <div className="flex items-center gap-3 px-4 py-3 border-b bg-white">
+        <Link href="/dashboard/inventory" className="p-1.5 hover:bg-gray-100 rounded-lg">
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-secondary-800 flex items-center gap-2">
-            <Pill className="w-7 h-7 text-primary-600" />
-            Add Medicine
-          </h1>
-          <p className="text-secondary-400 mt-1 font-sans">Add a new medicine to inventory</p>
-        </div>
+        <Pill className="w-5 h-5 text-primary-600" />
+        <h1 className="text-lg font-semibold text-gray-900">Add Medicine</h1>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">
-              Medicine Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
-              placeholder="e.g., Paracetamol 500mg"
-              required
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">
-              Generic Name
-            </label>
-            <input
-              type="text"
-              name="genericName"
-              value={formData.genericName}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
-              placeholder="e.g., Acetaminophen"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">
-              Category <span className="text-red-500">*</span>
-            </label>
-            <Select
-              name="category"
-              value={formData.category}
-              onChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-              options={CATEGORIES}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">
-              Unit
-            </label>
-            <Select
-              name="unit"
-              value={formData.unit}
-              onChange={(value) => setFormData(prev => ({ ...prev, unit: value }))}
-              options={UNITS}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">
-              Manufacturer
-            </label>
-            <input
-              type="text"
-              name="manufacturer"
-              value={formData.manufacturer}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
-              placeholder="e.g., Sun Pharma"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-secondary-700 mb-1.5 font-sans">
-              Reorder Level
-            </label>
-            <input
-              type="number"
-              name="reorderLevel"
-              value={formData.reorderLevel}
-              onChange={handleChange}
-              min="0"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
-            />
-            <p className="text-xs text-secondary-400 mt-1">Alert when stock falls below this level</p>
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
+        <div className="flex-1 p-4 bg-white">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="col-span-2 sm:col-span-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Medicine Name *</label>
+              <input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} placeholder="e.g., Paracetamol 500mg" required />
+            </div>
+            <div className="col-span-2 sm:col-span-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Generic Name</label>
+              <input type="text" name="genericName" value={formData.genericName} onChange={handleChange} className={inputClass} placeholder="e.g., Acetaminophen" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Category *</label>
+              <Select value={formData.category} onChange={(v) => setFormData(p => ({ ...p, category: v }))} options={CATEGORIES} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Unit</label>
+              <Select value={formData.unit} onChange={(v) => setFormData(p => ({ ...p, unit: v }))} options={UNITS} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Reorder Level</label>
+              <input type="number" name="reorderLevel" value={formData.reorderLevel} onChange={handleChange} min="0" className={inputClass} />
+            </div>
+            <div className="col-span-2 sm:col-span-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Manufacturer</label>
+              <input type="text" name="manufacturer" value={formData.manufacturer} onChange={handleChange} className={inputClass} placeholder="e.g., Sun Pharma" />
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-gray-100">
-          <Link
-            href="/dashboard/inventory"
-            className="flex-1 px-4 py-2.5 border border-gray-200 text-secondary-600 rounded-xl hover:bg-gray-50 transition-all font-sans font-semibold text-center"
-          >
-            Cancel
-          </Link>
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-md shadow-primary-500/20 font-sans font-semibold disabled:opacity-50"
-          >
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t bg-gray-50">
+          <Link href="/dashboard/inventory" className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</Link>
+          <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Add Medicine
           </button>
         </div>
