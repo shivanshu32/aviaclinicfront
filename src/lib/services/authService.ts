@@ -60,7 +60,9 @@ export const authService = {
    * Sign up / Start free trial
    */
   signup: async (data: { email: string; ownerName: string; phone?: string }): Promise<SignupResponse> => {
-    return api.post('/auth/signup', data);
+    const { phone, ...rest } = data;
+    const payload = phone?.trim() ? { ...rest, phone: phone.trim() } : rest;
+    return api.post('/auth/signup', payload);
   },
 
   /**

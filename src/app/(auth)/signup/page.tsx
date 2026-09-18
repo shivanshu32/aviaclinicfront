@@ -48,8 +48,9 @@ export default function SignupPage() {
       setSuccess(true);
       toast.success('Registration successful! Check your email.');
     } catch (err: unknown) {
-      const error = err as { error?: string };
-      setError(error.error || 'Registration failed. Please try again.');
+      const error = err as { error?: string; errors?: { field: string; message: string }[] };
+      const detail = error.errors?.map(e => e.message).join(' ');
+      setError(detail || error.error || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
