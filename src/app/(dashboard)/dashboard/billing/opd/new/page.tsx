@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Receipt, Save, X, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { billingService, patientService, Patient, doctorService, Doctor, serviceItemService, ServiceItem } from '@/lib/services';
+import { billingService, patientService, Patient, doctorService, Doctor } from '@/lib/services';
 import Select from '@/components/ui/Select';
+import { applyDoctorConsultation, OPDBillItem } from '@/lib/opdConsultation';
 
 const DISCOUNT_TYPE_OPTIONS = [
   { value: 'fixed', label: 'Fixed Amount' },
@@ -29,7 +30,6 @@ export default function NewOPDBillPage() {
   const [saving, setSaving] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [services, setServices] = useState<ServiceItem[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patientSearch, setPatientSearch] = useState('');
   const [searchingPatients, setSearchingPatients] = useState(false);
@@ -37,7 +37,7 @@ export default function NewOPDBillPage() {
 
   const [formData, setFormData] = useState({
     doctorId: '',
-    items: [{ description: '', quantity: 1, rate: 0 }],
+    items: [{ description: '', quantity: 1, rate: 0 }] as OPDBillItem[],
     discountType: 'fixed' as 'percentage' | 'fixed',
     discountValue: 0,
     paymentMode: 'cash' as 'cash' | 'card' | 'upi',
@@ -47,21 +47,15 @@ export default function NewOPDBillPage() {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [doctorsRes, servicesRes] = await Promise.all([
-          doctorService.getAll({ isActive: true }),
-          serviceItemService.getAll(),
-        ]);
+        const doctorsRes = await doctorService.getAll({ isActive: true });
         setDoctors(doctorsRes.data.doctors || []);
-        setServices(servicesRes.data?.services || []);
         
         // Set doctor from URL or default to first doctor
         const selectedDoctorId = doctorIdFromUrl || (doctorsRes.data.doctors?.length > 0 ? doctorsRes.data.doctors[0]._id : '');
         const selectedDoctor = doctorsRes.data.doctors?.find(d => d._id === selectedDoctorId);
         
-        // Pre-populate consultation charges if coming from appointment
-        const initialItems = appointmentIdFromUrl && selectedDoctor
-          ? [{ description: 'Consultation Charges', quantity: 1, rate: selectedDoctor.consultationFee || 0 }]
-          : [{ description: '', quantity: 1, rate: 0 }];
+        // Apply the selected doctor's fee for direct and appointment-linked bills.
+        const initialItems = applyDoctorConsultation([], selectedDoctor);
         
         setFormData(prev => ({ 
           ...prev, 
@@ -105,6 +99,15 @@ export default function NewOPDBillPage() {
     }));
   };
 
+  const selectDoctor = (doctorId: string) => {
+    const doctor = doctors.find(doctor => doctor._id === doctorId);
+    setFormData(prev => ({
+      ...prev,
+      doctorId,
+      items: applyDoctorConsultation(prev.items, doctor),
+    }));
+  };
+
   const removeItem = (index: number) => {
     setFormData(prev => ({
       ...prev,
@@ -119,18 +122,6 @@ export default function NewOPDBillPage() {
         i === index ? { ...item, [field]: value } : item
       ),
     }));
-  };
-
-  const selectService = (index: number, serviceId: string) => {
-    const service = services.find(s => s._id === serviceId);
-    if (service) {
-      setFormData(prev => ({
-        ...prev,
-        items: prev.items.map((item, i) => 
-          i === index ? { ...item, description: service.name, rate: service.rate } : item
-        ),
-      }));
-    }
   };
 
   const calculateSubtotal = () => {
@@ -170,7 +161,7 @@ export default function NewOPDBillPage() {
       await billingService.opd.create({
         patientId: selectedPatient._id,
         doctorId: formData.doctorId,
-        items: formData.items.filter(item => item.description),
+        items: formData.items.filter(item => item.description).map(({ description, quantity, rate }) => ({ description, quantity, rate })),
         discountType: formData.discountType,
         discountValue: formData.discountValue,
         paymentMode: formData.paymentMode,
@@ -241,7 +232,7 @@ export default function NewOPDBillPage() {
           {/* Doctor */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Doctor *</label>
-            <Select value={formData.doctorId} onChange={(v) => setFormData(p => ({ ...p, doctorId: v }))} options={[{ value: '', label: 'Select' }, ...doctors.map(d => ({ value: d._id, label: d.name }))]} />
+            <Select value={formData.doctorId} onChange={selectDoctor} options={[{ value: '', label: 'Select' }, ...doctors.map(d => ({ value: d._id, label: d.name }))]} />
           </div>
 
           {/* Items */}
@@ -254,10 +245,6 @@ export default function NewOPDBillPage() {
               {formData.items.map((item, idx) => (
                 <div key={idx} className="flex gap-3 items-center">
                   <div className="flex-1">
-                    <select value="" onChange={(e) => selectService(idx, e.target.value)} className={`${inputClass} mb-2`}>
-                      <option value="">Select service</option>
-                      {services.map(s => <option key={s._id} value={s._id}>{s.name} - ₹{s.rate}</option>)}
-                    </select>
                     <input type="text" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} placeholder="Description" className={inputClass} />
                   </div>
                   <input type="number" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)} min="1" className="w-20 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Qty" />
