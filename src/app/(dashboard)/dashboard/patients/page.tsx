@@ -139,7 +139,6 @@ export default function PatientsPage() {
                           </div>
                           <div>
                             <p className="font-semibold text-secondary-800 font-sans">{patient.name}</p>
-                            <p className="text-sm text-secondary-400 font-sans">ID: {patient.patientId}</p>
                           </div>
                         </div>
                       </td>

@@ -10,6 +10,7 @@ export interface Medicine {
   medicineId: string;
   name: string;
   genericName?: string;
+  isBreakable?: boolean | null;
   category: string;
   manufacturer?: string;
   unit: string;

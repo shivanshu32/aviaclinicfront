@@ -51,6 +51,7 @@ export default function NewMedicineBillPage() {
   const [saving, setSaving] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [medicineSearch, setMedicineSearch] = useState<Record<number, string>>({});
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patientSearch, setPatientSearch] = useState('');
   const [searchingPatients, setSearchingPatients] = useState(false);
@@ -349,10 +350,16 @@ export default function NewMedicineBillPage() {
               {formData.items.map((item, idx) => (
                 <div key={item.rowId} className="flex gap-3 items-center">
                   <div className="flex-1">
-                    <select value={item.medicineId} onChange={(e) => selectMedicine(item.rowId, e.target.value)} className={`${inputClass} mb-2`}>
+                    <div className="relative mb-2">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input type="search" aria-label={`Search medicine for item ${idx + 1}`} value={medicineSearch[item.rowId] || ''} onChange={e => setMedicineSearch(prev => ({ ...prev, [item.rowId]: e.target.value }))} placeholder="Search medicine by name, generic name or ID..." className={`${inputClass} pl-10`} />
+                    </div>
+                    <select aria-label={`Select medicine for item ${idx + 1}`} value={item.medicineId} onChange={(e) => selectMedicine(item.rowId, e.target.value)} className={`${inputClass} mb-2`}>
                       <option value="">Select medicine</option>
-                      {medicines.map(m => <option key={m._id} value={m._id}>{m.name} ({m.currentStock || 0})</option>)}
+                      {medicines.filter(m => m._id === item.medicineId || [m.name, m.genericName, m.medicineId].some(value => value?.toLowerCase().includes((medicineSearch[item.rowId] || '').trim().toLowerCase()))).map(m => <option key={m._id} value={m._id}>{m.name} ({m.currentStock || 0})</option>)}
                     </select>
+                    {medicineSearch[item.rowId]?.trim() && !medicines.some(m => [m.name, m.genericName, m.medicineId].some(value => value?.toLowerCase().includes(medicineSearch[item.rowId].trim().toLowerCase()))) && <p role="status" className="mb-2 text-sm text-gray-500">No medicines match your search.</p>}
+                    {item.medicineId && <p className="mb-2 text-sm text-primary-700">Breakable tablet: {medicines.find(m => m._id === item.medicineId)?.isBreakable === true ? 'Yes' : medicines.find(m => m._id === item.medicineId)?.isBreakable === false ? 'No' : 'Not specified'} <Link href={`/dashboard/inventory/${item.medicineId}/edit`} className="ml-2 underline">Edit in Pharmacy</Link></p>}
                     <input type="text" value={item.description} readOnly placeholder="Medicine name" className={inputClass} />
                     {item.batchId && <p className="mt-1 text-sm text-gray-500">Batch: {item.batchNo} · Expiry: {new Date(item.expiryDate).toLocaleDateString()} · Available: {item.availableStock}</p>}
                     {item.medicineId && item.hasBatchRecords && !item.loadingPrice && <button type="button" className="mt-1 text-sm text-green-600" onClick={() => selectMedicine(item.rowId, item.medicineId)}>Select Batch</button>}

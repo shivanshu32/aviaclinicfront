@@ -24,8 +24,6 @@ export default function NewOPDBillPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const patientIdFromUrl = searchParams.get('patient');
-  const appointmentIdFromUrl = searchParams.get('appointment');
-  const doctorIdFromUrl = searchParams.get('doctor');
 
   const [saving, setSaving] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -59,19 +57,6 @@ export default function NewOPDBillPage() {
       try {
         const doctorsRes = await doctorService.getAll({ isActive: true });
         setDoctors(doctorsRes.data.doctors || []);
-        
-        // Set doctor from URL or default to first doctor
-        const selectedDoctorId = doctorIdFromUrl || (doctorsRes.data.doctors?.length > 0 ? doctorsRes.data.doctors[0]._id : '');
-        const selectedDoctor = doctorsRes.data.doctors?.find(d => d._id === selectedDoctorId);
-        
-        // Apply the selected doctor's fee for direct and appointment-linked bills.
-        const initialItems = applyDoctorConsultation([], selectedDoctor);
-        
-        setFormData(prev => ({ 
-          ...prev, 
-          doctorId: selectedDoctorId,
-          items: initialItems
-        }));
 
         if (patientIdFromUrl) {
           const patientRes = await patientService.getById(patientIdFromUrl);
@@ -84,7 +69,7 @@ export default function NewOPDBillPage() {
       }
     };
     loadInitialData();
-  }, [patientIdFromUrl, appointmentIdFromUrl, doctorIdFromUrl]);
+  }, [patientIdFromUrl]);
 
   const searchPatients = async (query: string) => {
     const request = ++patientRequest.current;
@@ -132,7 +117,7 @@ export default function NewOPDBillPage() {
   const removeItem = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      items: prev.items.filter((_, i) => i !== index),
+      items: prev.items.filter((item, i) => i !== index || item.isConsultation),
     }));
   };
 
@@ -140,7 +125,7 @@ export default function NewOPDBillPage() {
     setFormData(prev => ({
       ...prev,
       items: prev.items.map((item, i) => 
-        i === index ? { ...item, [field]: value } : item
+        i === index && !item.isConsultation ? { ...item, [field]: value } : item
       ),
     }));
   };
@@ -205,9 +190,9 @@ export default function NewOPDBillPage() {
   }
 
   return (
-    <div className="h-full flex flex-col -m-4 sm:-m-6">
+    <div className="min-h-full flex flex-col -mx-4 sm:-mx-6 md:h-full md:min-h-0">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b bg-white">
+      <div className="shrink-0 flex items-center gap-3 px-4 py-2 border-b bg-white">
         <Link href="/dashboard/billing" className="p-1.5 hover:bg-gray-100 rounded-lg">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
@@ -218,8 +203,9 @@ export default function NewOPDBillPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
-        <div className="flex-1 p-6 bg-white space-y-5 overflow-y-auto">
+      <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 p-4 bg-white flex flex-col gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0">
           {/* Patient */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Patient *</label>
@@ -262,28 +248,30 @@ export default function NewOPDBillPage() {
             </button>
           </div>
 
+          </div>
+
           {/* Items */}
-          <div>
+          <div className="flex-1 min-h-24 flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-gray-700">Items</label>
               <button type="button" onClick={addItem} className="text-sm text-primary-600 font-medium">+ Add Item</button>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2 md:flex-1 md:min-h-0 md:overflow-y-auto">
               {formData.items.map((item, idx) => (
                 <div key={idx} className="flex gap-3 items-center">
-                  <div className="flex-1">
-                    <input type="text" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} placeholder="Description" className={inputClass} />
+                  <div className="flex-1 min-w-0">
+                    <input type="text" value={item.description} readOnly={!!item.isConsultation} onChange={(e) => updateItem(idx, 'description', e.target.value)} placeholder="Description" className={`${inputClass} read-only:bg-primary-50 read-only:text-primary-800`} />
                   </div>
-                  <input type="number" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)} min="1" className="w-20 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Qty" />
-                  <input type="number" value={item.rate} onChange={(e) => updateItem(idx, 'rate', parseFloat(e.target.value) || 0)} min="0" className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Rate" />
-                  {formData.items.length > 1 && <button type="button" onClick={() => removeItem(idx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><X className="w-5 h-5" /></button>}
+                  <input type="number" value={item.quantity} readOnly={!!item.isConsultation} onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)} min="1" className="w-20 px-4 py-2.5 border border-gray-200 rounded-xl read-only:bg-primary-50 read-only:text-primary-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Qty" />
+                  <input type="number" value={item.rate} readOnly={!!item.isConsultation} onChange={(e) => updateItem(idx, 'rate', parseFloat(e.target.value) || 0)} min="0" className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl read-only:bg-primary-50 read-only:text-primary-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Rate" />
+                  {!item.isConsultation && formData.items.length > 1 && <button type="button" onClick={() => removeItem(idx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><X className="w-5 h-5" /></button>}
                 </div>
               ))}
             </div>
           </div>
 
           {/* Discount & Payment */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 shrink-0">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Discount Type</label>
               <Select value={formData.discountType} onChange={(v) => setFormData(p => ({ ...p, discountType: v as 'percentage' | 'fixed' }))} options={DISCOUNT_TYPE_OPTIONS} />
@@ -299,15 +287,15 @@ export default function NewOPDBillPage() {
           </div>
 
           {/* Summary */}
-          <div className="bg-gray-50 rounded-xl p-4">
-            <div className="flex justify-between mb-2"><span className="text-gray-500">Subtotal</span><span className="font-medium">₹{calculateSubtotal()}</span></div>
-            <div className="flex justify-between mb-2"><span className="text-gray-500">Discount</span><span className="font-medium text-red-600">-₹{calculateDiscount()}</span></div>
-            <div className="flex justify-between font-semibold text-lg border-t border-gray-200 pt-3 mt-2"><span>Total</span><span className="text-primary-600">₹{calculateTotal()}</span></div>
+          <div className="shrink-0 bg-gray-50 rounded-xl px-4 py-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="flex items-center justify-between gap-3"><span className="text-gray-500">Subtotal</span><span className="font-medium">₹{calculateSubtotal()}</span></div>
+            <div className="flex items-center justify-between gap-3"><span className="text-gray-500">Discount</span><span className="font-medium text-red-600">-₹{calculateDiscount()}</span></div>
+            <div className="flex items-center justify-between gap-3 font-semibold text-lg sm:border-l sm:border-gray-200 sm:pl-4"><span>Total</span><span className="text-primary-600">₹{calculateTotal()}</span></div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-gray-50">
+        <div className="shrink-0 flex items-center justify-end gap-3 px-4 py-2 border-t bg-gray-50">
           <Link href="/dashboard/billing" className="px-4 py-2.5 font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50">Cancel</Link>
           <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2.5 font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}

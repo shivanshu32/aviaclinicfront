@@ -44,6 +44,7 @@ export default function AddMedicinePage() {
     manufacturer: '',
     unit: 'tablets',
     reorderLevel: 10,
+    isBreakable: null as boolean | null,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -107,6 +108,10 @@ export default function AddMedicinePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Unit</label>
               <Select value={formData.unit} onChange={(v) => setFormData(p => ({ ...p, unit: v }))} options={UNITS} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Breakable tablet</label>
+              <Select value={formData.isBreakable === null ? '' : String(formData.isBreakable)} onChange={(value) => setFormData(prev => ({ ...prev, isBreakable: value === '' ? null : value === 'true' }))} options={[{ value: '', label: 'Not specified' }, { value: 'true', label: 'Yes — tablet can be split' }, { value: 'false', label: 'No — tablet cannot be split' }]} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Reorder Level</label>

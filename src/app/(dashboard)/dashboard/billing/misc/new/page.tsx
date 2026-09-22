@@ -5,9 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, FlaskConical, Save, X, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { billingService, patientService, Patient, serviceItemService, ServiceItem } from '@/lib/services';
+import { billingService, patientService, Patient } from '@/lib/services';
 import Select from '@/components/ui/Select';
-import ServiceSelectionModal from '@/components/billing/ServiceSelectionModal';
+import { useMiscBillDraft } from '@/components/billing/MiscBillDraft';
 
 const DISCOUNT_TYPE_OPTIONS = [
   { value: 'fixed', label: 'Fixed Amount' },
@@ -27,27 +27,14 @@ export default function NewMiscBillPage() {
 
   const [saving, setSaving] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [services, setServices] = useState<ServiceItem[]>([]);
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const { formData, setFormData, selectedPatient, setSelectedPatient } = useMiscBillDraft();
   const [patientSearch, setPatientSearch] = useState('');
   const [searchingPatients, setSearchingPatients] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [showServiceModal, setShowServiceModal] = useState(false);
-
-  const [formData, setFormData] = useState({
-    items: [{ description: '', quantity: 1, rate: 0 }],
-    discountType: 'fixed' as 'percentage' | 'fixed',
-    discountValue: 0,
-    paymentMode: 'cash' as 'cash' | 'card' | 'upi',
-    remarks: '',
-  });
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const servicesRes = await serviceItemService.getAll();
-        setServices(servicesRes.data?.services || []);
-
         if (patientIdFromUrl) {
           const patientRes = await patientService.getById(patientIdFromUrl);
           setSelectedPatient(patientRes.data.patient);
@@ -59,7 +46,7 @@ export default function NewMiscBillPage() {
       }
     };
     loadInitialData();
-  }, [patientIdFromUrl]);
+  }, [patientIdFromUrl, setSelectedPatient]);
 
   const searchPatients = async (query: string) => {
     if (!query.trim()) {
@@ -95,20 +82,9 @@ export default function NewMiscBillPage() {
     setFormData(prev => ({
       ...prev,
       items: prev.items.map((item, i) => 
-        i === index ? { ...item, [field]: value } : item
+        i === index && !(item.serviceId && field === 'rate') ? { ...item, [field]: value } : item
       ),
     }));
-  };
-
-  const addSelectedServices = (selected: ServiceItem[]) => {
-    setFormData(prev => ({
-      ...prev,
-      items: [
-        ...prev.items.filter(item => item.description.trim() || item.rate !== 0 || item.quantity !== 1),
-        ...selected.map(service => ({ description: service.name, quantity: 1, rate: service.rate })),
-      ],
-    }));
-    setShowServiceModal(false);
   };
 
   const calculateSubtotal = () => {
@@ -159,10 +135,10 @@ export default function NewMiscBillPage() {
     }
   };
 
-  const inputClass = "w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500";
+  const inputClass = "w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500";
 
   if (initialLoading) {
-    return <div className="flex items-center justify-center h-full"><Loader2 className="w-6 h-6 animate-spin text-purple-600" /></div>;
+    return <div className="flex items-center justify-center h-full"><Loader2 className="w-6 h-6 animate-spin text-primary-600" /></div>;
   }
 
   return (
@@ -172,10 +148,10 @@ export default function NewMiscBillPage() {
         <Link href="/dashboard/billing" className="p-1.5 hover:bg-gray-100 rounded-lg">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
-        <FlaskConical className="w-5 h-5 text-purple-600" />
+        <FlaskConical className="w-5 h-5 text-primary-600" />
         <h1 className="text-lg font-semibold text-gray-900">New Lab/Misc Bill</h1>
-        <div className="ml-auto bg-purple-50 px-4 py-1.5 rounded-xl">
-          <span className="font-semibold text-purple-700">₹{calculateTotal()}</span>
+        <div className="ml-auto bg-primary-50 px-4 py-1.5 rounded-xl">
+          <span className="font-semibold text-primary-700">₹{calculateTotal()}</span>
         </div>
       </div>
 
@@ -185,7 +161,7 @@ export default function NewMiscBillPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Patient *</label>
             {selectedPatient ? (
-              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-primary-50 rounded-xl">
                 <div>
                   <p className="font-medium text-gray-900">{selectedPatient.name}</p>
                   <p className="text-sm text-gray-500">{selectedPatient.patientId} • {selectedPatient.phone}</p>
@@ -215,9 +191,10 @@ export default function NewMiscBillPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-gray-700">Lab Tests / Services</label>
-              <button type="button" onClick={addItem} className="text-sm text-purple-600 font-medium">+ Add Item</button>
+              <button type="button" onClick={addItem} className="text-sm text-primary-600 font-medium">+ Add Item</button>
             </div>
-            <button type="button" aria-haspopup="dialog" aria-expanded={showServiceModal} onClick={() => setShowServiceModal(true)} className={`${inputClass} mb-3 text-left text-purple-700 bg-white hover:bg-purple-50`}>Select Service</button>
+            <Link href="/dashboard/billing/misc/new/services" className="inline-flex items-center gap-2 mb-4 px-4 py-2.5 rounded-xl bg-primary-600 text-white font-medium hover:bg-primary-700"><FlaskConical className="w-4 h-4" />Select Services</Link>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Bill items</h3>
             <div className="space-y-3">
               {formData.items.map((item, idx) => (
                 <div key={idx} className="flex gap-3 items-center">
@@ -225,7 +202,7 @@ export default function NewMiscBillPage() {
                     <input type="text" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} placeholder="Description" className={inputClass} />
                   </div>
                   <input type="number" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)} min="1" className="w-20 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Qty" />
-                  <input type="number" value={item.rate} onChange={(e) => updateItem(idx, 'rate', parseFloat(e.target.value) || 0)} min="0" className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Rate" />
+                  <input type="number" value={item.rate} readOnly={!!item.serviceId} aria-label={item.serviceId ? "Saved service rate" : "Rate"} onChange={(e) => updateItem(idx, 'rate', parseFloat(e.target.value) || 0)} min="0" className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl read-only:bg-primary-50 read-only:text-primary-800" placeholder="Rate" />
                   {formData.items.length > 1 && <button type="button" onClick={() => removeItem(idx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><X className="w-5 h-5" /></button>}
                 </div>
               ))}
@@ -252,20 +229,19 @@ export default function NewMiscBillPage() {
           <div className="bg-gray-50 rounded-xl p-4">
             <div className="flex justify-between mb-2"><span className="text-gray-500">Subtotal</span><span className="font-medium">₹{calculateSubtotal()}</span></div>
             <div className="flex justify-between mb-2"><span className="text-gray-500">Discount</span><span className="font-medium text-red-600">-₹{calculateDiscount()}</span></div>
-            <div className="flex justify-between font-semibold text-lg border-t border-gray-200 pt-3 mt-2"><span>Total</span><span className="text-purple-600">₹{calculateTotal()}</span></div>
+            <div className="flex justify-between font-semibold text-lg border-t border-gray-200 pt-3 mt-2"><span>Total</span><span className="text-primary-600">₹{calculateTotal()}</span></div>
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-gray-50">
           <Link href="/dashboard/billing" className="px-4 py-2.5 font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50">Cancel</Link>
-          <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2.5 font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 disabled:opacity-50">
+          <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2.5 font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Create Bill
           </button>
         </div>
       </form>
-      {showServiceModal && <ServiceSelectionModal services={services} onAdd={addSelectedServices} onClose={() => setShowServiceModal(false)} />}
     </div>
   );
 }

@@ -19,7 +19,7 @@ import { billingService, Bill } from '@/lib/services';
 
 const billTypes = [
   { id: 'opd', label: 'OPD Bills', icon: FileText, color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
-  { id: 'misc', label: 'Lab/Misc Bills', icon: FlaskConical, color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-50', textColor: 'text-purple-600' },
+  { id: 'misc', label: 'Lab/Misc Bills', icon: FlaskConical, color: 'from-primary-500 to-primary-600', bgColor: 'bg-primary-50', textColor: 'text-primary-600' },
   { id: 'medicine', label: 'Medicine Bills', icon: Pill, color: 'from-green-500 to-green-600', bgColor: 'bg-green-50', textColor: 'text-green-600' },
 ];
 

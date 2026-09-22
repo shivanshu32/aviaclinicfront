@@ -278,8 +278,6 @@ export default function PatientDetailPage() {
             <div>
               <h1 className="text-xl font-heading font-bold text-secondary-800">{patient.name}</h1>
               <div className="flex flex-wrap items-center gap-2 mt-1">
-                <span className="text-sm text-secondary-500 font-sans">ID: {patient.patientId}</span>
-                <span className="text-secondary-300">•</span>
                 <span className="text-sm text-secondary-500 font-sans">{patient.age}y, {patient.gender}</span>
                 {patient.bloodGroup && (
                   <>

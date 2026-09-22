@@ -15,6 +15,7 @@ import {
   Shield,
   MessageSquare,
   BarChart3,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -27,6 +28,7 @@ const navItems = [
   { path: '/dashboard/inventory', icon: Package, label: 'Pharmacy' },
   { path: '/dashboard/services', icon: FlaskConical, label: 'Service Charges' },
   { path: '/dashboard/reports', icon: BarChart3, label: 'Reports' },
+  { path: '/dashboard/letterhead', icon: FileText, label: 'Letterhead' },
   { path: '/dashboard/whatsapp', icon: MessageSquare, label: 'WhatsApp' },
   { path: '/dashboard/users', icon: Shield, label: 'User Management' },
   { path: '/dashboard/settings', icon: Settings, label: 'Settings', exact: true },
@@ -76,7 +78,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 ${collapsed ? 'p-2' : 'p-4'} space-y-1`}>
+      <nav className={`flex-1 overflow-y-auto ${collapsed ? 'p-2' : 'p-4'} space-y-1`}>
         {navItems.map((item) => {
           const active = isActive(item.path, item.exact);
           return (

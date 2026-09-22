@@ -13,6 +13,7 @@ import {
   CheckCircle,
   XCircle,
   UserCheck,
+  Printer,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { appointmentService, Appointment } from '@/lib/services';
@@ -114,32 +115,30 @@ export default function AppointmentsPage() {
       </div>
 
       {/* Date Navigation */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-4">
-        <div className="flex items-center justify-between">
-          <button onClick={() => changeDate(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
+      <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-4 overflow-x-auto">
+        <div className="flex items-center justify-start gap-4 min-w-max text-left">
+          <button onClick={() => changeDate(-1)} className="shrink-0 p-2 hover:bg-gray-100 rounded-xl transition-all">
             <ChevronLeft className="w-5 h-5 text-secondary-500" />
           </button>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 whitespace-nowrap">
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
             />
-            <span className="text-lg font-heading font-semibold text-secondary-800 hidden md:block">
+            <span className="text-lg font-heading font-semibold text-secondary-800">
               {formatDisplayDate(selectedDate)}
             </span>
+            <button
+              onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+              className="shrink-0 px-4 py-1.5 text-sm font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-all font-sans"
+            >
+              Today
+            </button>
           </div>
-          <button onClick={() => changeDate(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
+          <button onClick={() => changeDate(1)} className="shrink-0 p-2 hover:bg-gray-100 rounded-xl transition-all">
             <ChevronRight className="w-5 h-5 text-secondary-500" />
-          </button>
-        </div>
-        <div className="flex justify-center mt-3">
-          <button 
-            onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-            className="px-4 py-1.5 text-sm font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-all font-sans"
-          >
-            Today
           </button>
         </div>
       </div>
@@ -209,6 +208,7 @@ export default function AppointmentsPage() {
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-1">
+                        <Link href={`/dashboard/letterhead?appointment=${apt._id}`} title="Print on letterhead" aria-label="Print appointment on letterhead" className="p-2 rounded-lg text-primary-600 hover:bg-primary-50"><Printer className="w-4 h-4" /></Link>
                         {nextAction && apt.status !== 'completed' && apt.status !== 'cancelled' && (
                           <button
                             onClick={() => handleStatusUpdate(apt._id, nextAction.action, apt.billing?.hasBill)}

@@ -17,6 +17,7 @@ import {
   XCircle,
   Play,
   UserCheck,
+  Printer,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { appointmentService, Appointment } from '@/lib/services';
@@ -137,6 +138,8 @@ export default function AppointmentDetailPage() {
           {appointment.status?.replace('-', ' ')}
         </span>
       </div>
+
+      <Link href={`/dashboard/letterhead?appointment=${appointment._id}`} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white hover:bg-primary-700"><Printer className="w-5 h-5" />Print on Letterhead</Link>
 
       <div className="grid md:grid-cols-3 gap-6">
         {/* Main Info */}

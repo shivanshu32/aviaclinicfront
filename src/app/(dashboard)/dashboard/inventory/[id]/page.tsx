@@ -131,6 +131,10 @@ export default function MedicineDetailPage() {
               <p className="text-secondary-700 font-sans font-medium">{medicine.unit}</p>
             </div>
             <div>
+              <p className="text-xs text-secondary-400 font-sans">Breakable tablet</p>
+              <p className="text-secondary-700 font-sans font-medium">{medicine.isBreakable === true ? 'Yes' : medicine.isBreakable === false ? 'No' : 'Not specified'}</p>
+            </div>
+            <div>
               <p className="text-xs text-secondary-400 font-sans">Reorder Level</p>
               <p className="text-secondary-700 font-sans font-medium">{medicine.reorderLevel}</p>
             </div>

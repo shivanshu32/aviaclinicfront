@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   BarChart3, 
   Calendar,
@@ -14,6 +14,8 @@ import {
   Stethoscope,
 } from 'lucide-react';
 import { billingService, appointmentService, patientService } from '@/lib/services';
+
+import PatientReportWorkspace from '@/components/reports/PatientReportWorkspace';
 
 type ReportType = 'collection' | 'appointments' | 'patients';
 
@@ -44,14 +46,10 @@ export default function ReportsPage() {
   const reports = [
     { id: 'collection' as ReportType, label: 'Collection Report', icon: IndianRupee, color: 'from-green-500 to-green-600' },
     { id: 'appointments' as ReportType, label: 'Appointments Report', icon: Calendar, color: 'from-blue-500 to-blue-600' },
-    { id: 'patients' as ReportType, label: 'Patient Report', icon: Users, color: 'from-purple-500 to-purple-600' },
+    { id: 'patients' as ReportType, label: 'Patient Report', icon: Users, color: 'from-primary-500 to-primary-600' },
   ];
 
-  useEffect(() => {
-    fetchReportData();
-  }, [activeReport, dateFrom, dateTo]);
-
-  const fetchReportData = async () => {
+  const fetchReportData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeReport === 'collection') {
@@ -95,7 +93,11 @@ export default function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeReport, dateFrom, dateTo]);
+
+  useEffect(() => {
+    fetchReportData();
+  }, [fetchReportData]);
 
   const handleExport = () => {
     let csvContent = '';
@@ -129,13 +131,13 @@ export default function ReportsPage() {
           </h1>
           <p className="text-secondary-400 mt-1 font-sans">View and export clinic reports</p>
         </div>
-        <button
+        {activeReport !== 'patients' && <button
           onClick={handleExport}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-md shadow-primary-500/20 font-sans font-semibold"
         >
           <Download className="w-5 h-5" />
           Export CSV
-        </button>
+        </button>}
       </div>
 
       {/* Report Type Selector */}
@@ -161,7 +163,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Date Range Filter */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-4">
+      <div hidden={activeReport === 'patients'} className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-4">
         <div className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex-1">
             <label className="block text-sm font-semibold text-secondary-700 mb-1.5">From Date</label>
@@ -190,8 +192,11 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      <div hidden={activeReport !== 'patients'} className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
+        <PatientReportWorkspace />
+      </div>
       {/* Report Content */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-6">
+      <div hidden={activeReport === 'patients'} className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-6">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
@@ -217,10 +222,10 @@ export default function ReportsPage() {
                       {collectionData.opd.toLocaleString()}
                     </p>
                   </div>
-                  <div className="p-4 bg-purple-50 rounded-xl">
+                  <div className="p-4 bg-primary-50 rounded-xl">
                     <div className="flex items-center gap-2 mb-2">
-                      <Receipt className="w-5 h-5 text-purple-600" />
-                      <span className="text-sm text-purple-600 font-medium">Lab/Misc</span>
+                      <Receipt className="w-5 h-5 text-primary-600" />
+                      <span className="text-sm text-primary-600 font-medium">Lab/Misc</span>
                     </div>
                     <p className="text-2xl font-bold text-secondary-800 flex items-center gap-1">
                       <IndianRupee className="w-5 h-5" />
@@ -295,43 +300,7 @@ export default function ReportsPage() {
               </div>
             )}
 
-            {/* Patients Report */}
-            {activeReport === 'patients' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-secondary-800">Patient Statistics</h2>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                        <Users className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <p className="text-purple-100">Total Registered</p>
-                        <p className="text-3xl font-bold">{patientCount}</p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-purple-100">Patients in your clinic database</p>
-                  </div>
-                  
-                  <div className="p-6 bg-gray-50 rounded-2xl">
-                    <h3 className="font-semibold text-secondary-800 mb-4">Quick Actions</h3>
-                    <div className="space-y-2">
-                      <a href="/dashboard/patients" className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium">
-                        <Users className="w-4 h-4" />
-                        View All Patients
-                      </a>
-                      <a href="/dashboard/patients/add" className="flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium">
-                        <FileText className="w-4 h-4" />
-                        Add New Patient
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+
           </>
         )}
       </div>

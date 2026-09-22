@@ -64,7 +64,6 @@ export default function BookAppointmentPage() {
     try {
       const response = await doctorService.getAll({ isActive: true });
       setDoctors(response.data.doctors);
-      if (response.data.doctors.length > 0) setFormData(prev => ({ ...prev, doctorId: response.data.doctors[0]._id }));
     } catch { /* ignore */ }
   };
 
@@ -164,7 +163,7 @@ export default function BookAppointmentPage() {
               <Select
                 value={formData.doctorId}
                 onChange={(value) => setFormData(prev => ({ ...prev, doctorId: value }))}
-                options={[{ value: '', label: 'Select' }, ...doctors.map(d => ({ value: d._id, label: d.name }))]}
+                options={[{ value: '', label: 'Select doctor' }, ...doctors.map(d => ({ value: d._id, label: d.name }))]}
               />
             </div>
             <div>
