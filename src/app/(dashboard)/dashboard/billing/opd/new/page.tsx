@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Receipt, Save, X, Search } from 'lucide-react';
@@ -33,6 +33,9 @@ export default function NewOPDBillPage() {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patientSearch, setPatientSearch] = useState('');
   const [searchingPatients, setSearchingPatients] = useState(false);
+  const [showPatients, setShowPatients] = useState(false);
+  const [patientSearchError, setPatientSearchError] = useState('');
+  const patientRequest = useRef(0);
   const [initialLoading, setInitialLoading] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -77,19 +80,30 @@ export default function NewOPDBillPage() {
   }, [patientIdFromUrl, appointmentIdFromUrl, doctorIdFromUrl]);
 
   const searchPatients = async (query: string) => {
-    if (!query.trim()) {
-      setPatients([]);
-      return;
-    }
+    const request = ++patientRequest.current;
+    setShowPatients(true);
     setSearchingPatients(true);
+    setPatientSearchError('');
+    setPatients([]);
     try {
-      const response = await patientService.getAll({ search: query, limit: 10 });
-      setPatients(response.data.patients || []);
-    } catch (err) {
-      console.error('Failed to search patients:', err);
+      const response = await patientService.getAll({ search: query.trim() || undefined, limit: 10 });
+      if (request === patientRequest.current) setPatients(response.data.patients || []);
+    } catch {
+      if (request === patientRequest.current) {
+        setPatientSearchError('Unable to load patients. Please try again.');
+      }
     } finally {
-      setSearchingPatients(false);
+      if (request === patientRequest.current) setSearchingPatients(false);
     }
+  };
+
+  const selectPatient = (patient: Patient) => {
+    ++patientRequest.current;
+    setSelectedPatient(patient);
+    setPatients([]);
+    setPatientSearch('');
+    setShowPatients(false);
+    setSearchingPatients(false);
   };
 
   const addItem = () => {
@@ -213,14 +227,17 @@ export default function NewOPDBillPage() {
             ) : (
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input type="text" value={patientSearch} onChange={(e) => { setPatientSearch(e.target.value); searchPatients(e.target.value); }} placeholder="Search patient by name or phone..." className={`${inputClass} pl-11`} />
+                <input type="text" value={patientSearch} onFocus={() => searchPatients(patientSearch)} onKeyDown={(e) => { if (e.key === 'Escape') { ++patientRequest.current; setShowPatients(false); setSearchingPatients(false); } }} onChange={(e) => { setPatientSearch(e.target.value); searchPatients(e.target.value); }} placeholder="Click to choose, or search by name, phone or patient ID..." className={`${inputClass} pl-11`} />
                 {searchingPatients && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 animate-spin text-gray-400" />}
-                {patients.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                {showPatients && (
+                  <div className="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                    {searchingPatients && <p className="p-3 text-sm text-gray-500">Loading patients…</p>}
+                    {patientSearchError && <div role="alert" className="p-3 text-sm text-red-600">{patientSearchError} <button type="button" onClick={() => searchPatients(patientSearch)} className="underline">Retry</button></div>}
+                    {!searchingPatients && !patientSearchError && patients.length === 0 && <p className="p-3 text-sm text-gray-500">No patients found. Try another name, phone number or patient ID.</p>}
                     {patients.map(p => (
-                      <button key={p._id} type="button" onClick={() => { setSelectedPatient(p); setPatients([]); setPatientSearch(''); }} className="w-full p-3 text-left hover:bg-gray-50">
+                      <button key={p._id} type="button" onClick={() => selectPatient(p)} className="w-full p-3 text-left hover:bg-gray-50">
                         <p className="font-medium">{p.name}</p>
-                        <p className="text-sm text-gray-500">{p.phone}</p>
+                        <p className="text-sm text-gray-500">{p.patientId} • {p.phone}</p>
                       </button>
                     ))}
                   </div>
