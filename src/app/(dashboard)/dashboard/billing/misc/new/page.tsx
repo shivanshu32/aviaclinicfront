@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, FlaskConical, Save, X, Search } from 'lucide-react'
 import toast from 'react-hot-toast';
 import { billingService, patientService, Patient, serviceItemService, ServiceItem } from '@/lib/services';
 import Select from '@/components/ui/Select';
+import ServiceSelectionModal from '@/components/billing/ServiceSelectionModal';
 
 const DISCOUNT_TYPE_OPTIONS = [
   { value: 'fixed', label: 'Fixed Amount' },
@@ -31,6 +32,7 @@ export default function NewMiscBillPage() {
   const [patientSearch, setPatientSearch] = useState('');
   const [searchingPatients, setSearchingPatients] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [showServiceModal, setShowServiceModal] = useState(false);
 
   const [formData, setFormData] = useState({
     items: [{ description: '', quantity: 1, rate: 0 }],
@@ -98,16 +100,15 @@ export default function NewMiscBillPage() {
     }));
   };
 
-  const selectService = (index: number, serviceId: string) => {
-    const service = services.find(s => s._id === serviceId);
-    if (service) {
-      setFormData(prev => ({
-        ...prev,
-        items: prev.items.map((item, i) => 
-          i === index ? { ...item, description: service.name, rate: service.rate } : item
-        ),
-      }));
-    }
+  const addSelectedServices = (selected: ServiceItem[]) => {
+    setFormData(prev => ({
+      ...prev,
+      items: [
+        ...prev.items.filter(item => item.description.trim() || item.rate !== 0 || item.quantity !== 1),
+        ...selected.map(service => ({ description: service.name, quantity: 1, rate: service.rate })),
+      ],
+    }));
+    setShowServiceModal(false);
   };
 
   const calculateSubtotal = () => {
@@ -216,14 +217,11 @@ export default function NewMiscBillPage() {
               <label className="text-sm font-medium text-gray-700">Lab Tests / Services</label>
               <button type="button" onClick={addItem} className="text-sm text-purple-600 font-medium">+ Add Item</button>
             </div>
+            <button type="button" aria-haspopup="dialog" aria-expanded={showServiceModal} onClick={() => setShowServiceModal(true)} className={`${inputClass} mb-3 text-left text-purple-700 bg-white hover:bg-purple-50`}>Select Service</button>
             <div className="space-y-3">
               {formData.items.map((item, idx) => (
                 <div key={idx} className="flex gap-3 items-center">
                   <div className="flex-1">
-                    <select value="" onChange={(e) => selectService(idx, e.target.value)} className={`${inputClass} mb-2`}>
-                      <option value="">Select service</option>
-                      {services.filter(s => s.category === 'laboratory' || s.category === 'radiology').map(s => <option key={s._id} value={s._id}>{s.name} - ₹{s.rate}</option>)}
-                    </select>
                     <input type="text" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} placeholder="Description" className={inputClass} />
                   </div>
                   <input type="number" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)} min="1" className="w-20 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Qty" />
@@ -267,6 +265,7 @@ export default function NewMiscBillPage() {
           </button>
         </div>
       </form>
+      {showServiceModal && <ServiceSelectionModal services={services} onAdd={addSelectedServices} onClose={() => setShowServiceModal(false)} />}
     </div>
   );
 }

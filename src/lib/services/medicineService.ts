@@ -27,6 +27,7 @@ export interface StockBatch {
   quantity: number;
   currentQty: number;
   purchasePrice: number;
+  mrp?: number | null;
   sellingPrice: number;
   expiryDate: string;
   status: string;

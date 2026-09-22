@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Receipt, Save, X, Search } from 'lucide-react';
+import { ArrowLeft, Loader2, Receipt, Save, X, Search, ChevronDown, Stethoscope } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { billingService, patientService, Patient, doctorService, Doctor } from '@/lib/services';
 import Select from '@/components/ui/Select';
@@ -37,6 +37,13 @@ export default function NewOPDBillPage() {
   const [patientSearchError, setPatientSearchError] = useState('');
   const patientRequest = useRef(0);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [showDoctorModal, setShowDoctorModal] = useState(false);
+  const [chosenDoctorId, setChosenDoctorId] = useState('');
+  const doctorButton = useRef<HTMLButtonElement>(null);
+  const closeDoctorModal = () => {
+    setShowDoctorModal(false);
+    doctorButton.current?.focus();
+  };
 
   const [formData, setFormData] = useState({
     doctorId: '',
@@ -249,7 +256,10 @@ export default function NewOPDBillPage() {
           {/* Doctor */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Doctor *</label>
-            <Select value={formData.doctorId} onChange={selectDoctor} options={[{ value: '', label: 'Select' }, ...doctors.map(d => ({ value: d._id, label: d.name }))]} />
+            <button ref={doctorButton} type="button" aria-haspopup="dialog" aria-expanded={showDoctorModal} onClick={() => { setChosenDoctorId(formData.doctorId); setShowDoctorModal(true); }} className={`${inputClass} flex items-center justify-between gap-3 text-left bg-white`}>
+              <span>{doctors.find(doctor => doctor._id === formData.doctorId)?.name || 'Select doctor'}</span>
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            </button>
           </div>
 
           {/* Items */}
@@ -305,6 +315,50 @@ export default function NewOPDBillPage() {
           </button>
         </div>
       </form>
+      {showDoctorModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onKeyDown={event => {
+          if (event.key === 'Escape') closeDoctorModal();
+          if (event.key === 'Tab') {
+            const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)'));
+            const first = controls[0], last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+          }
+        }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="doctor-popup-title" className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100">
+              <h2 id="doctor-popup-title" className="text-xl font-semibold text-gray-900">Select Doctor</h2>
+              <p className="mt-2 text-sm text-gray-500">Choose the doctor the patient consulted.</p>
+            </div>
+            <div className="overflow-y-auto p-4 sm:p-6 bg-gray-50/70">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {doctors.map(doctor => (
+                  <label key={doctor._id} className={`rounded-2xl border p-5 cursor-pointer transition-all focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 ${chosenDoctorId === doctor._id ? 'bg-primary-50 border-primary-600 ring-1 ring-primary-600 shadow-sm' : 'bg-white border-gray-200 hover:border-primary-400 hover:shadow-sm'}`}>
+                    <div className="flex items-start gap-3">
+                      <div className="p-2.5 rounded-xl bg-primary-100 text-primary-600"><Stethoscope className="w-5 h-5" /></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 break-words">{doctor.name}</p>
+                        {doctor.specialization && <p className="mt-1 text-sm text-gray-500">{doctor.specialization}</p>}
+                        {doctor.qualification && <p className="mt-1 text-xs text-gray-500">{doctor.qualification}</p>}
+                      </div>
+                      <input type="radio" name="opd-doctor" aria-label={`Select ${doctor.name}`} checked={chosenDoctorId === doctor._id} onChange={() => setChosenDoctorId(doctor._id)} className="mt-1 w-5 h-5 shrink-0 accent-green-600" />
+                    </div>
+                    <div className="mt-5 pt-4 border-t border-gray-200/70 flex items-center justify-between gap-3">
+                      <span className="text-sm text-gray-600">Consultation fee</span>
+                      <span className="text-xl font-semibold text-primary-700">₹{doctor.consultationFee ?? 0}</span>
+                    </div>
+                  </label>
+                ))}
+                {!doctors.length && <p className="col-span-full py-4 text-center text-gray-500">No active doctors available. Add a doctor in Doctors to continue.</p>}
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-white">
+              <button autoFocus type="button" onClick={closeDoctorModal} className="px-5 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-600 hover:bg-gray-50">Cancel</button>
+              <button type="button" disabled={!doctors.some(doctor => doctor._id === chosenDoctorId)} onClick={() => { selectDoctor(chosenDoctorId); closeDoctorModal(); }} className="px-5 py-2.5 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed">Select Doctor</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

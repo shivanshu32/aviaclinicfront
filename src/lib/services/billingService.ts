@@ -7,6 +7,9 @@ import api from '../api';
 
 export interface BillItem {
   medicineId?: string;
+  batchId?: string;
+  batchNo?: string;
+  expiryDate?: string;
   description: string;
   quantity: number;
   rate: number;
