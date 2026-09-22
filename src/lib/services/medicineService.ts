@@ -15,6 +15,7 @@ export interface Medicine {
   unit: string;
   reorderLevel: number;
   currentStock?: number;
+  sellingPrice?: number | null;
   isActive: boolean;
   createdAt: string;
 }

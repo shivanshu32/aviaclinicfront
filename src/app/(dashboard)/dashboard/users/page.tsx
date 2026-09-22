@@ -144,9 +144,17 @@ export default function UsersPage() {
       const payload: Record<string, string> = {
         name: formData.name,
         email: formData.email,
-        role: formData.role,
-        phone: formData.phone,
       };
+
+      // Owner roles cannot be changed. Omit unchanged roles on updates too.
+      if (!editingUser || (editingUser.role !== 'owner' && formData.role !== editingUser.role)) {
+        payload.role = formData.role;
+      }
+
+      // The API accepts an omitted optional phone, but rejects an empty string.
+      if (formData.phone.trim()) {
+        payload.phone = formData.phone.trim();
+      }
       
       if (formData.password) {
         payload.password = formData.password;
@@ -364,7 +372,15 @@ export default function UsersPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
-                  <Select value={formData.role} onChange={(v) => setFormData({ ...formData, role: v })} options={ROLE_OPTIONS} />
+                  <Select
+                    value={formData.role}
+                    onChange={(v) => setFormData({ ...formData, role: v })}
+                    options={editingUser?.role === 'owner' ? [{ value: 'owner', label: 'Owner' }] : ROLE_OPTIONS}
+                    disabled={editingUser?.role === 'owner'}
+                  />
+                  {editingUser?.role === 'owner' && (
+                    <p className="mt-1.5 text-xs text-gray-500">The owner role cannot be changed. You can still edit other details.</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>

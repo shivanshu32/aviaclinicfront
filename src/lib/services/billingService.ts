@@ -6,6 +6,7 @@
 import api from '../api';
 
 export interface BillItem {
+  medicineId?: string;
   description: string;
   quantity: number;
   rate: number;

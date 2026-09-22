@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Pill, Save, X, Search } from 'lucide-react';
@@ -19,6 +19,22 @@ const PAYMENT_MODE_OPTIONS = [
   { value: 'upi', label: 'UPI' },
 ];
 
+const MISSING_PRICE = 'Price not configured for this medicine. Please update the medicine price in Pharmacy.';
+interface MedicineBillRow {
+  rowId: number;
+  medicineId: string;
+  description: string;
+  quantity: number;
+  rate: number | null;
+  loadingPrice: boolean;
+  priceError: string;
+  selectionId: number;
+}
+const emptyItem = (rowId: number): MedicineBillRow => ({
+  rowId, medicineId: '', description: '', quantity: 1, rate: null,
+  loadingPrice: false, priceError: '', selectionId: 0,
+});
+
 export default function NewMedicineBillPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,9 +49,10 @@ export default function NewMedicineBillPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [isWalkIn, setIsWalkIn] = useState(false);
   const [walkInDetails, setWalkInDetails] = useState({ name: '', phone: '' });
+  const nextId = useRef(0);
 
   const [formData, setFormData] = useState({
-    items: [{ description: '', quantity: 1, rate: 0 }],
+    items: [emptyItem(0)],
     discountType: 'fixed' as 'percentage' | 'fixed',
     discountValue: 0,
     paymentMode: 'cash' as 'cash' | 'card' | 'upi',
@@ -45,8 +62,16 @@ export default function NewMedicineBillPage() {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const medicinesRes = await medicineService.getAll({ includeStock: true, limit: 100 });
-        setMedicines(medicinesRes.data?.medicines || []);
+        const allMedicines: Medicine[] = [];
+        let page = 1;
+        let pages = 1;
+        do {
+          const response = await medicineService.getAll({ includeStock: true, limit: 100, page });
+          allMedicines.push(...(response.data?.medicines || []));
+          pages = response.data?.pagination?.pages || 1;
+          page += 1;
+        } while (page <= pages);
+        setMedicines(allMedicines);
 
         if (patientIdFromUrl) {
           const patientRes = await patientService.getById(patientIdFromUrl);
@@ -54,6 +79,7 @@ export default function NewMedicineBillPage() {
         }
       } catch (err) {
         console.error('Failed to load data:', err);
+        toast.error('Failed to load billing data. Please reload and try again.');
       } finally {
         setInitialLoading(false);
       }
@@ -78,9 +104,10 @@ export default function NewMedicineBillPage() {
   };
 
   const addItem = () => {
+    const row = emptyItem(++nextId.current);
     setFormData(prev => ({
       ...prev,
-      items: [...prev.items, { description: '', quantity: 1, rate: 0 }],
+      items: [...prev.items, row],
     }));
   };
 
@@ -100,20 +127,39 @@ export default function NewMedicineBillPage() {
     }));
   };
 
-  const selectMedicine = (index: number, medicineId: string) => {
+  const selectMedicine = async (rowId: number, medicineId: string) => {
     const medicine = medicines.find(m => m._id === medicineId);
-    if (medicine) {
+    const selectionId = ++nextId.current;
+    setFormData(prev => ({
+      ...prev,
+      items: prev.items.map(item => item.rowId === rowId ? {
+        ...item, medicineId, description: medicine?.name || '', rate: null,
+        loadingPrice: !!medicine, priceError: '', selectionId,
+      } : item),
+    }));
+    if (!medicine) return;
+    try {
+      const response = await medicineService.getById(medicineId);
+      const price = response.data?.medicine?.sellingPrice;
+      const rate = typeof price === 'number' && Number.isFinite(price) && price > 0 ? price : null;
       setFormData(prev => ({
         ...prev,
-        items: prev.items.map((item, i) => 
-          i === index ? { ...item, description: medicine.name, rate: 0 } : item
-        ),
+        items: prev.items.map(item => item.rowId === rowId && item.selectionId === selectionId
+          ? { ...item, rate, loadingPrice: false, priceError: rate === null ? MISSING_PRICE : '' } : item),
+      }));
+    } catch {
+      setFormData(prev => ({
+        ...prev,
+        items: prev.items.map(item => item.rowId === rowId && item.selectionId === selectionId
+          ? { ...item, loadingPrice: false, priceError: 'Unable to load the Pharmacy price. Please select the medicine again.' } : item),
       }));
     }
   };
 
+  const hasUnpricedItems = formData.items.some(item => item.medicineId && (item.rate === null || item.loadingPrice || item.priceError));
+
   const calculateSubtotal = () => {
-    return formData.items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+    return formData.items.reduce((sum, item) => sum + (item.quantity * (item.rate ?? 0)), 0);
   };
 
   const calculateDiscount = () => {
@@ -139,8 +185,16 @@ export default function NewMedicineBillPage() {
       toast.error('Please enter walk-in customer name');
       return;
     }
-    if (formData.items.length === 0 || !formData.items[0].description) {
-      toast.error('Please add at least one item');
+    if (formData.items.length === 0 || formData.items.some(item => !item.medicineId)) {
+      toast.error('Please select a medicine for every item');
+      return;
+    }
+    if (hasUnpricedItems) {
+      toast.error(formData.items.find(item => item.priceError)?.priceError || 'Please wait for the Pharmacy price to load.');
+      return;
+    }
+    if (formData.items.some(item => !Number.isInteger(item.quantity) || item.quantity < 1)) {
+      toast.error('Medicine quantity must be a positive whole number');
       return;
     }
 
@@ -150,13 +204,13 @@ export default function NewMedicineBillPage() {
         patientId?: string;
         patientName?: string;
         patientPhone?: string;
-        items: { description: string; quantity: number; rate: number }[];
+        items: { medicineId: string; description: string; quantity: number; rate: number }[];
         discountType?: 'percentage' | 'fixed';
         discountValue?: number;
         paymentMode: string;
         remarks?: string;
       } = {
-        items: formData.items.filter(item => item.description),
+        items: formData.items.map(item => ({ medicineId: item.medicineId, description: item.description, quantity: item.quantity, rate: item.rate! })),
         discountType: formData.discountType,
         discountValue: formData.discountValue,
         paymentMode: formData.paymentMode,
@@ -197,7 +251,7 @@ export default function NewMedicineBillPage() {
         <Pill className="w-5 h-5 text-green-600" />
         <h1 className="text-lg font-semibold text-gray-900">New Medicine Bill</h1>
         <div className="ml-auto bg-green-50 px-4 py-1.5 rounded-xl">
-          <span className="font-semibold text-green-700">₹{calculateTotal()}</span>
+          <span className="font-semibold text-green-700">{hasUnpricedItems ? 'Price unavailable' : `₹${calculateTotal()}`}</span>
         </div>
       </div>
 
@@ -252,16 +306,19 @@ export default function NewMedicineBillPage() {
             </div>
             <div className="space-y-3">
               {formData.items.map((item, idx) => (
-                <div key={idx} className="flex gap-3 items-center">
+                <div key={item.rowId} className="flex gap-3 items-center">
                   <div className="flex-1">
-                    <select value="" onChange={(e) => selectMedicine(idx, e.target.value)} className={`${inputClass} mb-2`}>
+                    <select value={item.medicineId} onChange={(e) => selectMedicine(item.rowId, e.target.value)} className={`${inputClass} mb-2`}>
                       <option value="">Select medicine</option>
                       {medicines.map(m => <option key={m._id} value={m._id}>{m.name} ({m.currentStock || 0})</option>)}
                     </select>
-                    <input type="text" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} placeholder="Medicine name" className={inputClass} />
+                    <input type="text" value={item.description} readOnly placeholder="Medicine name" className={inputClass} />
+                    {item.priceError && <p role="alert" className="mt-1 text-sm text-red-600">{item.priceError}</p>}
+                    {item.loadingPrice && <p className="mt-1 text-sm text-gray-500">Loading Pharmacy price…</p>}
+                    {item.rate !== null && <p className="mt-1 text-sm text-gray-500">Line total: ₹{item.quantity * item.rate}</p>}
                   </div>
                   <input type="number" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', parseInt(e.target.value) || 1)} min="1" className="w-20 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Qty" />
-                  <input type="number" value={item.rate} onChange={(e) => updateItem(idx, 'rate', parseFloat(e.target.value) || 0)} min="0" className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Rate" />
+                  <input type="number" value={item.rate ?? ''} readOnly aria-label="Pharmacy price" className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl" placeholder="Rate" />
                   {formData.items.length > 1 && <button type="button" onClick={() => removeItem(idx)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><X className="w-5 h-5" /></button>}
                 </div>
               ))}
@@ -286,16 +343,16 @@ export default function NewMedicineBillPage() {
 
           {/* Summary */}
           <div className="bg-gray-50 rounded-xl p-4">
-            <div className="flex justify-between mb-2"><span className="text-gray-500">Subtotal</span><span className="font-medium">₹{calculateSubtotal()}</span></div>
-            <div className="flex justify-between mb-2"><span className="text-gray-500">Discount</span><span className="font-medium text-red-600">-₹{calculateDiscount()}</span></div>
-            <div className="flex justify-between font-semibold text-lg border-t border-gray-200 pt-3 mt-2"><span>Total</span><span className="text-green-600">₹{calculateTotal()}</span></div>
+            <div className="flex justify-between mb-2"><span className="text-gray-500">Subtotal</span><span className="font-medium">{hasUnpricedItems ? '—' : `₹${calculateSubtotal()}`}</span></div>
+            <div className="flex justify-between mb-2"><span className="text-gray-500">Discount</span><span className="font-medium text-red-600">{hasUnpricedItems ? '—' : `-₹${calculateDiscount()}`}</span></div>
+            <div className="flex justify-between font-semibold text-lg border-t border-gray-200 pt-3 mt-2"><span>Total</span><span className="text-green-600">{hasUnpricedItems ? 'Price unavailable' : `₹${calculateTotal()}`}</span></div>
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-gray-50">
           <Link href="/dashboard/billing" className="px-4 py-2.5 font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50">Cancel</Link>
-          <button type="submit" disabled={saving} className="flex items-center gap-2 px-4 py-2.5 font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 disabled:opacity-50">
+          <button type="submit" disabled={saving || hasUnpricedItems} className="flex items-center gap-2 px-4 py-2.5 font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Create Bill
           </button>
