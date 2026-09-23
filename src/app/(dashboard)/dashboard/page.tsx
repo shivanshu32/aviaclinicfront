@@ -1,419 +1,172 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { 
-  Users, 
-  Calendar, 
-  Receipt, 
-  Package,
-  Clock,
-  Loader2,
-  CalendarX,
-  ChevronLeft,
-  ChevronRight,
-  Play,
-  CheckCircle,
-  XCircle,
-  UserCheck,
-  Eye,
-} from 'lucide-react';
+import { Calendar, CalendarDays, CalendarX, CheckCircle2, ChevronLeft, ChevronRight, IndianRupee, Clock3, Eye, FilePlus2, Loader2, Package, PackagePlus, Pill, Play, Plus, UserCheck, UserPlus, Users, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { dashboardService, appointmentService } from '@/lib/services';
+import { appointmentService, dashboardService } from '@/lib/services';
+import StatusBadge from '@/components/ui/StatusBadge';
+import EmptyState from '@/components/ui/EmptyState';
 
-interface DashboardStats {
-  totalPatients: number;
-  todayAppointments: number;
-  todayRevenue: number;
-  lowStockItems: number;
-}
-
+interface DashboardStats { totalPatients: number; todayAppointments: number; todayRevenue: number; lowStockItems: number; }
 interface Appointment {
-  _id: string;
-  appointmentId: string;
-  tokenNo: number;
-  status: string;
-  type: string;
-  patient?: {
-    _id: string;
-    name: string;
-    phone: string;
-    patientId: string;
-  };
-  doctor?: {
-    _id: string;
-    name: string;
-  };
-  billing?: {
-    hasBill: boolean;
-    paymentStatus?: string;
-  };
+  _id: string; appointmentId: string; tokenNo: number; status: string; type: string;
+  patient?: { _id: string; name: string; phone: string; patientId: string };
+  doctor?: { _id: string; name: string };
+  billing?: { hasBill: boolean; paymentStatus?: string };
 }
+
+const tabs = [
+  { key: 'all', label: 'All' }, { key: 'scheduled', label: 'Scheduled' },
+  { key: 'checked-in', label: 'Checked in' }, { key: 'in-progress', label: 'In consultation' },
+  { key: 'completed', label: 'Completed' },
+];
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalPatients: 0,
-    todayAppointments: 0,
-    todayRevenue: 0,
-    lowStockItems: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats>({ totalPatients: 0, todayAppointments: 0, todayRevenue: 0, lowStockItems: 0 });
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [activeTab, setActiveTab] = useState('all');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchDashboardData();
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [statsRes, appointmentsRes] = await Promise.all([dashboardService.getStats(), dashboardService.getAppointments()]);
+        setStats(statsRes.data); setAppointments(appointmentsRes.data.appointments || []);
+      } catch (error) { console.error('Failed to fetch dashboard data:', error); }
+      finally { setLoading(false); }
+    };
+    load();
   }, []);
 
   useEffect(() => {
-    const doFetchAppointments = async () => {
-      try {
-        const res = await dashboardService.getAppointments(selectedDate);
-        setAppointments(res.data.appointments || []);
-      } catch (error) {
-        console.error('Failed to fetch appointments:', error);
-      }
+    const loadAppointments = async () => {
+      try { const response = await dashboardService.getAppointments(selectedDate); setAppointments(response.data.appointments || []); }
+      catch (error) { console.error('Failed to fetch appointments:', error); }
     };
-    doFetchAppointments();
+    loadAppointments();
   }, [selectedDate]);
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
-    try {
-      const [statsRes, appointmentsRes] = await Promise.all([
-        dashboardService.getStats(),
-        dashboardService.getAppointments(),
-      ]);
-
-      setStats(statsRes.data);
-      setAppointments(appointmentsRes.data.appointments || []);
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  
-  const handleStatusUpdate = async (appointmentId: string, newStatus: 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled', hasBill = false) => {
-    if (newStatus === 'completed' && !hasBill) {
-      toast.error('Please generate bill before marking appointment as completed');
-      return;
-    }
-
+  const updateStatus = async (appointmentId: string, status: 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled', hasBill = false) => {
+    if (status === 'completed' && !hasBill) { toast.error('Please generate bill before marking appointment as completed'); return; }
     setUpdatingId(appointmentId);
     try {
-      await appointmentService.update(appointmentId, { status: newStatus });
-      setAppointments(prev => prev.map(apt => 
-        apt._id === appointmentId ? { ...apt, status: newStatus } : apt
-      ));
-      toast.success(`Appointment ${newStatus === 'cancelled' ? 'cancelled' : 'updated'} successfully`);
-    } catch (error) {
-      console.error('Failed to update appointment:', error);
-      toast.error('Failed to update appointment');
-    } finally {
-      setUpdatingId(null);
-    }
+      await appointmentService.update(appointmentId, { status });
+      setAppointments(items => items.map(item => item._id === appointmentId ? { ...item, status } : item));
+      toast.success(status === 'cancelled' ? 'Appointment cancelled' : 'Appointment updated');
+    } catch { toast.error('Failed to update appointment'); }
+    finally { setUpdatingId(null); }
   };
 
-  const changeDate = (days: number) => {
-    const date = new Date(selectedDate);
-    date.setDate(date.getDate() + days);
-    setSelectedDate(date.toISOString().split('T')[0]);
+  const shiftDate = (days: number) => { const date = new Date(selectedDate); date.setDate(date.getDate() + days); setSelectedDate(date.toISOString().split('T')[0]); };
+  const currency = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+  const initials = (name?: string) => name ? name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2) : '—';
+  const displayDate = new Date(`${selectedDate}T00:00:00`).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+  const filtered = activeTab === 'all' ? appointments : appointments.filter(item => item.status === activeTab);
+  const count = (status: string) => appointments.filter(item => item.status === status).length;
+  const pendingBills = appointments.filter(item => item.billing?.hasBill && item.billing.paymentStatus !== 'paid').length;
+
+  const nextAction = (status: string) => {
+    if (status === 'scheduled') return { status: 'checked-in' as const, label: 'Check in', icon: UserCheck };
+    if (status === 'checked-in') return { status: 'in-progress' as const, label: 'Start visit', icon: Play };
+    if (status === 'in-progress') return { status: 'completed' as const, label: 'Complete', icon: CheckCircle2 };
+    return null;
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const getInitials = (name?: string) => {
-    if (!name) return '??';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-700';
-      case 'in-progress': return 'bg-blue-100 text-blue-700';
-      case 'checked-in': return 'bg-yellow-100 text-yellow-700';
-      case 'cancelled': return 'bg-red-100 text-red-700';
-      case 'scheduled': return 'bg-gray-100 text-gray-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const formatDisplayDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (dateStr === today.toISOString().split('T')[0]) return 'Today';
-    if (dateStr === tomorrow.toISOString().split('T')[0]) return 'Tomorrow';
-    if (dateStr === yesterday.toISOString().split('T')[0]) return 'Yesterday';
-    return date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
-  };
-
-  const STATUS_TABS = [
-    { key: 'all', label: 'All' },
-    { key: 'scheduled', label: 'Upcoming' },
-    { key: 'checked-in', label: 'Checked-in' },
-    { key: 'in-progress', label: 'In Progress' },
-    { key: 'completed', label: 'Completed' },
-  ];
-
-  const filteredAppointments = activeTab === 'all' 
-    ? appointments 
-    : appointments.filter(apt => apt.status === activeTab);
-
-  const getNextAction = (status: string): { action: 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled'; label: string; icon: typeof UserCheck; color: string } | null => {
-    switch (status) {
-      case 'scheduled': return { action: 'checked-in', label: 'Check-in', icon: UserCheck, color: 'text-yellow-600 hover:bg-yellow-50' };
-      case 'checked-in': return { action: 'in-progress', label: 'Start', icon: Play, color: 'text-blue-600 hover:bg-blue-50' };
-      case 'in-progress': return { action: 'completed', label: 'Complete', icon: CheckCircle, color: 'text-green-600 hover:bg-green-50' };
-      default: return null;
-    }
-  };
-
-  const statsConfig = [
-    { label: 'Total Patients', value: stats.totalPatients.toLocaleString(), icon: Users, color: 'bg-blue-500' },
-    { label: "Today's Appointments", value: stats.todayAppointments, icon: Calendar, color: 'bg-green-500' },
-    { label: "Today's Revenue", value: formatCurrency(stats.todayRevenue), icon: Receipt, color: 'bg-purple-500' },
-    { label: 'Low Stock Items', value: stats.lowStockItems, icon: Package, color: 'bg-orange-500' },
+  const kpis = [
+    { label: 'Total patients', value: stats.totalPatients.toLocaleString(), note: 'Registered records', icon: Users, accent: 'dashboard-card-teal' },
+    { label: "Today's appointments", value: stats.todayAppointments.toLocaleString(), note: `${count('checked-in')} checked in`, icon: CalendarDays, accent: 'dashboard-card-blue' },
+    { label: "Today's revenue", value: currency(stats.todayRevenue), note: `${pendingBills} pending payment${pendingBills === 1 ? '' : 's'}`, icon: IndianRupee, accent: 'dashboard-card-violet' },
+    { label: 'Low stock items', value: stats.lowStockItems.toLocaleString(), note: stats.lowStockItems ? 'Requires attention' : 'Stock levels healthy', icon: Package, alert: stats.lowStockItems > 0, accent: 'dashboard-card-amber' },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link 
-          href="/dashboard/patients/add" 
-          className="p-4 bg-blue-50 border border-blue-100 rounded-2xl hover:bg-blue-100 transition-all text-left group hover:shadow-md"
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-blue-500/20">
-            <Users className="w-5 h-5 text-white" />
-          </div>
-          <p className="font-heading font-semibold text-secondary-800">New Patient</p>
-          <p className="text-sm text-secondary-400 font-sans">Register patient</p>
-        </Link>
-        <Link 
-          href="/dashboard/appointments/book" 
-          className="p-4 bg-green-50 border border-green-100 rounded-2xl hover:bg-green-100 transition-all text-left group hover:shadow-md"
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-green-500/20">
-            <Calendar className="w-5 h-5 text-white" />
-          </div>
-          <p className="font-heading font-semibold text-secondary-800">Book Appointment</p>
-          <p className="text-sm text-secondary-400 font-sans">Schedule visit</p>
-        </Link>
-        <Link 
-          href="/dashboard/billing" 
-          className="p-4 bg-purple-50 border border-purple-100 rounded-2xl hover:bg-purple-100 transition-all text-left group hover:shadow-md"
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-purple-500/20">
-            <Receipt className="w-5 h-5 text-white" />
-          </div>
-          <p className="font-heading font-semibold text-secondary-800">Billing</p>
-          <p className="text-sm text-secondary-400 font-sans">Manage invoices</p>
-        </Link>
-        <Link 
-          href="/dashboard/inventory" 
-          className="p-4 bg-orange-50 border border-orange-100 rounded-2xl hover:bg-orange-100 transition-all text-left group hover:shadow-md"
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-orange-500/20">
-            <Package className="w-5 h-5 text-white" />
-          </div>
-          <p className="font-heading font-semibold text-secondary-800">Inventory</p>
-          <p className="text-sm text-secondary-400 font-sans">Manage stock</p>
-        </Link>
-      </div>
+      <section className="flex flex-col gap-4 border-b border-secondary-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-700">Hospital command center</p>
+          <h1 className="text-2xl font-bold tracking-tight text-secondary-900 sm:text-[28px]">Good day, here’s your overview</h1>
+          <p className="mt-1 text-sm text-secondary-500">Monitor today’s patient flow, collections, and operational priorities.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/dashboard/patients/add" className="btn-secondary border border-secondary-200 bg-white"><UserPlus className="h-4 w-4" /> New patient</Link>
+          <Link href="/dashboard/appointments/book" className="btn-primary"><Plus className="h-4 w-4" /> Book appointment</Link>
+        </div>
+      </section>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statsConfig.map((stat) => (
-          <div key={stat.label} className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-6 hover:shadow-md transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-secondary-400 font-sans">{stat.label}</p>
-                <p className="text-2xl font-heading font-bold text-secondary-800 mt-1">
-                  {loading ? <span className="text-gray-300">-</span> : stat.value}
-                </p>
-              </div>
-              <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}>
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Today’s key metrics">
+        {kpis.map(({ label, value, note, icon: Icon, alert, accent }) => (
+          <article key={label} className={`dashboard-kpi-card ${accent} group rounded-xl border bg-white p-5`}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0"><p className="text-sm font-medium text-secondary-500">{label}</p><p className="mt-2 truncate text-2xl font-bold tracking-tight text-secondary-900">{loading ? <span className="inline-block h-7 w-20 animate-pulse rounded bg-secondary-100" /> : value}</p></div>
+              <span className="dashboard-kpi-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"><Icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" /></span>
             </div>
-          </div>
+            <p className={`mt-3 text-xs ${alert ? 'font-medium text-amber-700' : 'text-secondary-400'}`}>{note}</p>
+          </article>
         ))}
-      </div>
+      </section>
 
-      {/* Appointments Section */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100">
-        {/* Header with Date Navigation */}
-        <div className="p-4 border-b border-gray-100">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 className="font-heading font-semibold text-secondary-800 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary-500" />
-              Appointments
-            </h2>
-            <div className="flex items-center gap-2">
-              <button onClick={() => changeDate(-1)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-                <ChevronLeft className="w-5 h-5 text-gray-600" />
-              </button>
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="px-2 sm:px-3 py-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 w-[130px] sm:w-auto font-sans"
-                />
-                <span className="hidden sm:inline text-sm font-semibold text-secondary-600 min-w-[80px] font-sans">
-                  {formatDisplayDate(selectedDate)}
-                </span>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section className="overflow-hidden rounded-xl border border-secondary-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+          <div className="border-b border-secondary-200 p-4 sm:p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div><div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-700"><Clock3 className="h-4 w-4" /></span><h2 className="text-base font-bold text-secondary-900">Appointment queue</h2></div><p className="mt-1 pl-10 text-xs text-secondary-500">{displayDate} · {appointments.length} appointment{appointments.length === 1 ? '' : 's'}</p></div>
+              <div className="flex items-center rounded-lg border border-secondary-200 bg-secondary-50 p-1">
+                <button onClick={() => shiftDate(-1)} className="icon-button h-8 w-8" aria-label="Previous day"><ChevronLeft className="h-4 w-4" /></button>
+                <input type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)} aria-label="Appointment date" className="h-8 w-[136px] border-0 bg-transparent px-2 text-xs font-semibold text-secondary-700 focus:ring-0" />
+                <button onClick={() => shiftDate(1)} className="icon-button h-8 w-8" aria-label="Next day"><ChevronRight className="h-4 w-4" /></button>
+                <button onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])} className="h-8 rounded-md bg-white px-3 text-xs font-semibold text-primary-700 shadow-sm">Today</button>
               </div>
-              <button onClick={() => changeDate(1)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-                <ChevronRight className="w-5 h-5 text-gray-600" />
-              </button>
-              <button 
-                onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-                className="ml-1 sm:ml-2 px-2 sm:px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
-              >
-                Today
-              </button>
+            </div>
+            <div className="mt-4 flex gap-1 overflow-x-auto" role="tablist" aria-label="Appointment status">
+              {tabs.map(tab => { const total = tab.key === 'all' ? appointments.length : count(tab.key); const selected = activeTab === tab.key; return <button key={tab.key} onClick={() => setActiveTab(tab.key)} role="tab" aria-selected={selected} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${selected ? 'bg-primary-700 text-white' : 'text-secondary-500 hover:bg-secondary-100 hover:text-secondary-800'}`}>{tab.label}<span className={`rounded px-1.5 py-0.5 text-[10px] ${selected ? 'bg-white/15 text-white' : 'bg-secondary-100 text-secondary-500'}`}>{total}</span></button>; })}
             </div>
           </div>
 
-          {/* Status Tabs */}
-          <div className="flex items-center gap-1 mt-4 overflow-x-auto pb-2 -mb-2">
-            {STATUS_TABS.map((tab) => {
-              const count = tab.key === 'all' ? appointments.length : appointments.filter(a => a.status === tab.key).length;
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`px-3 py-1.5 text-sm font-semibold rounded-xl transition-all whitespace-nowrap flex-shrink-0 font-sans ${
-                    activeTab === tab.key
-                      ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md shadow-primary-500/20'
-                      : 'text-secondary-500 hover:bg-gray-100'
-                  }`}
-                >
-                  {tab.label} ({count})
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Appointments List */}
-        <div className="p-4">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
-            </div>
-          ) : filteredAppointments.length === 0 ? (
-            <div className="text-center py-8">
-              <CalendarX className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">No {activeTab !== 'all' ? activeTab : ''} appointments</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredAppointments.map((apt) => {
-                const nextAction = getNextAction(apt.status);
-                const isUpdating = updatingId === apt._id;
-                return (
-                  <div key={apt._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all gap-3">
-                    {/* Patient Info */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-primary-600 font-sans">
-                          {getInitials(apt.patient?.name)}
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-secondary-800 truncate font-sans">{apt.patient?.name || 'Unknown'}</p>
-                        <p className="text-xs text-secondary-400 truncate font-sans">
-                          {apt.doctor?.name || 'No doctor'} • Token #{apt.tokenNo || '-'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Status & Actions */}
-                    <div className="flex items-center justify-between sm:justify-end gap-2 pl-13 sm:pl-0">
-                      {/* Status Badges */}
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {apt.billing?.hasBill ? (
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            apt.billing.paymentStatus === 'paid' 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            {apt.billing.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-500">
-                            No Bill
-                          </span>
-                        )}
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(apt.status)}`}>
-                          {apt.status?.replace('-', ' ')}
-                        </span>
-                      </div>
-                      
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-1">
-                        {nextAction && apt.status !== 'completed' && apt.status !== 'cancelled' && (
-                          <button
-                            onClick={() => handleStatusUpdate(apt._id, nextAction.action, apt.billing?.hasBill)}
-                            disabled={isUpdating}
-                            className={`p-1.5 rounded-lg transition-colors ${nextAction.color} ${isUpdating ? 'opacity-50' : ''}`}
-                            title={nextAction.label}
-                          >
-                            {isUpdating ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <nextAction.icon className="w-4 h-4" />
-                            )}
-                          </button>
-                        )}
-                        {apt.status !== 'completed' && apt.status !== 'cancelled' && (
-                          <button
-                            onClick={() => handleStatusUpdate(apt._id, 'cancelled')}
-                            disabled={isUpdating}
-                            className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
-                            title="Cancel"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </button>
-                        )}
-                        <Link
-                          href={`/dashboard/appointments/${apt._id}`}
-                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-200 transition-colors"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                      </div>
-                    </div>
+          <div className="min-h-[340px]">
+            {loading ? <div className="space-y-3 p-5">{[1,2,3,4].map(item => <div key={item} className="h-[68px] animate-pulse rounded-lg bg-secondary-50" />)}</div>
+            : filtered.length === 0 ? <EmptyState icon={CalendarX} title="No appointments found" description="There are no appointments in this status for the selected date." action={<Link href="/dashboard/appointments/book" className="btn-primary"><Plus className="h-4 w-4" /> Book appointment</Link>} />
+            : <div className="divide-y divide-secondary-100">{filtered.map(appointment => {
+                const action = nextAction(appointment.status); const updating = updatingId === appointment._id;
+                return <article key={appointment._id} className="group flex flex-col gap-3 px-4 py-4 hover:bg-primary-50/30 sm:flex-row sm:items-center sm:px-5">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-100 text-xs font-bold text-primary-800">{initials(appointment.patient?.name)}</span>
+                    <div className="min-w-0"><p className="truncate text-sm font-semibold text-secondary-900">{appointment.patient?.name || 'Unknown patient'}</p><p className="mt-0.5 truncate text-xs text-secondary-500">Token #{appointment.tokenNo || '—'} · {appointment.doctor?.name || 'Doctor not assigned'}</p></div>
                   </div>
-                );
-              })}
+                  <div className="flex flex-wrap items-center gap-2 pl-[52px] sm:pl-0"><StatusBadge status={appointment.status} /><StatusBadge status={appointment.billing?.hasBill ? appointment.billing.paymentStatus || 'pending' : 'No bill'} /></div>
+                  <div className="flex items-center justify-end gap-1 pl-[52px] sm:pl-0">
+                    {action && <button onClick={() => updateStatus(appointment._id, action.status, appointment.billing?.hasBill)} disabled={updating} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary-50 px-2.5 text-xs font-semibold text-primary-700 hover:bg-primary-100 disabled:opacity-50" title={action.label}>{updating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <action.icon className="h-3.5 w-3.5" />}{action.label}</button>}
+                    {appointment.status !== 'completed' && appointment.status !== 'cancelled' && <button onClick={() => updateStatus(appointment._id, 'cancelled')} disabled={updating} className="icon-button h-8 w-8 text-red-500 hover:bg-red-50" aria-label="Cancel appointment" title="Cancel appointment"><XCircle className="h-4 w-4" /></button>}
+                    <Link href={`/dashboard/appointments/${appointment._id}`} className="icon-button h-8 w-8" aria-label={`View ${appointment.patient?.name || 'appointment'}`} title="View details"><Eye className="h-4 w-4" /></Link>
+                  </div>
+                </article>;
+              })}</div>}
+          </div>
+          <div className="border-t border-secondary-200 px-5 py-3"><Link href="/dashboard/appointments" className="text-xs font-semibold text-primary-700 hover:text-primary-800">View appointment schedule →</Link></div>
+        </section>
+
+        <aside className="space-y-5">
+          <section className="dashboard-side-card rounded-xl border border-secondary-200 bg-white p-5">
+            <h2 className="text-sm font-bold text-secondary-900">Quick actions</h2><p className="mt-1 text-xs text-secondary-500">Common hospital workflows</p>
+            <div className="mt-4 space-y-1">
+              {[{ href: '/dashboard/patients/add', label: 'Register patient', note: 'Create a patient record', icon: UserPlus, color: 'quick-teal' }, { href: '/dashboard/appointments/book', label: 'Book appointment', note: 'Schedule a consultation', icon: Calendar, color: 'quick-blue' }, { href: '/dashboard/billing/opd/new', label: 'Create OPD bill', note: 'Record consultation charges', icon: FilePlus2, color: 'quick-violet' }, { href: '/dashboard/billing/medicine/new', label: 'Medicine bill', note: 'Dispense and bill medicines', icon: Pill, color: 'quick-rose' }, { href: '/dashboard/inventory/add', label: 'Add medicine', note: 'Update pharmacy catalogue', icon: PackagePlus, color: 'quick-amber' }].map(item => <Link key={item.href} href={item.href} className={`dashboard-quick-action ${item.color} group flex items-center gap-3 rounded-lg p-2.5`}><span className="quick-action-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"><item.icon className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" /></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-secondary-800">{item.label}</span><span className="block truncate text-xs text-secondary-400">{item.note}</span></span><ChevronRight className="h-4 w-4 text-secondary-300 transition-transform group-hover:translate-x-0.5" /></Link>)}
             </div>
-          )}
-          <Link 
-            href="/dashboard/appointments" 
-            className="block w-full mt-4 text-sm text-primary-600 hover:text-primary-700 font-semibold text-center font-sans transition-colors"
-          >
-            View all appointments →
-          </Link>
-        </div>
+          </section>
+
+          <section className="dashboard-side-card rounded-xl border border-secondary-200 bg-white p-5">
+            <div className="flex items-center justify-between"><h2 className="text-sm font-bold text-secondary-900">Today’s progress</h2><span className="text-xs text-secondary-400">Live</span></div>
+            <div className="mt-4 space-y-4">{[
+              { label: 'Checked in', value: count('checked-in'), total: appointments.length },
+              { label: 'In consultation', value: count('in-progress'), total: appointments.length },
+              { label: 'Completed', value: count('completed'), total: appointments.length },
+            ].map(item => { const percent = item.total ? Math.round((item.value / item.total) * 100) : 0; return <div key={item.label}><div className="mb-1.5 flex items-center justify-between text-xs"><span className="font-medium text-secondary-600">{item.label}</span><span className="font-semibold text-secondary-800">{item.value}</span></div><div className="h-1.5 overflow-hidden rounded-full bg-primary-100"><div className="h-full rounded-full bg-primary-600" style={{ width: `${percent}%` }} /></div></div>; })}</div>
+          </section>
+
+          {stats.lowStockItems > 0 && <Link href="/dashboard/inventory" className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-amber-700"><Package className="h-4 w-4" /></span><span><span className="block text-sm font-bold text-amber-900">Pharmacy attention</span><span className="mt-0.5 block text-xs leading-5 text-amber-700">{stats.lowStockItems} item{stats.lowStockItems === 1 ? '' : 's'} running low. Review inventory.</span></span></Link>}
+        </aside>
       </div>
     </div>
   );

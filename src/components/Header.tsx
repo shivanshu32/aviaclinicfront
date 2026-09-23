@@ -17,26 +17,26 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-lg border-b border-slate-200/40">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200/70 bg-white/95 backdrop-blur-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 md:h-24">
+        <div className="flex h-[72px] items-center justify-between">
           <Link href="/" className="flex items-center">
             <Image
               src="/avialogo.png"
               alt="Avia Wellness"
               width={180}
               height={45}
-              className="h-10 md:h-12 w-auto"
+              className="h-9 w-auto"
               priority
             />
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden items-center space-x-7 md:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="font-sans text-secondary-600 hover:text-primary-600 font-semibold transition-colors tracking-wide text-sm"
+                className="font-sans text-sm font-semibold text-slate-600 transition-colors hover:text-emerald-700"
               >
                 {link.label}
               </Link>
@@ -44,12 +44,8 @@ export default function Header() {
           </nav>
 
           <div className="hidden md:flex items-center">
-            <Link
-              href="/login"
-              className="font-sans bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-all hover:shadow-lg hover:shadow-primary-500/30 hover:scale-105"
-            >
-              Login
-            </Link>
+            <Link href="/login" className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50">Login</Link>
+            <Link href="/signup" className="ml-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-800">Get started</Link>
           </div>
 
           <button

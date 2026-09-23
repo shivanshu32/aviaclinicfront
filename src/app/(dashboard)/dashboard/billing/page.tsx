@@ -1,244 +1,52 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { 
-  Receipt, 
-  FileText, 
-  FlaskConical, 
-  Pill,
-  Plus,
-  Search,
-  Calendar,
-  Loader2,
-  Eye,
-  Printer,
-  IndianRupee,
-} from 'lucide-react';
+import { Calendar, Download, Eye, FileText, FlaskConical, IndianRupee, Plus, Printer, Receipt, Search, WalletCards, X } from 'lucide-react';
 import { billingService, Bill } from '@/lib/services';
+import EmptyState from '@/components/ui/EmptyState';
+import StatusBadge from '@/components/ui/StatusBadge';
 
-const billTypes = [
-  { id: 'opd', label: 'OPD Bills', icon: FileText, color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
-  { id: 'misc', label: 'Lab/Misc Bills', icon: FlaskConical, color: 'from-primary-500 to-primary-600', bgColor: 'bg-primary-50', textColor: 'text-primary-600' },
-  { id: 'medicine', label: 'Medicine Bills', icon: Pill, color: 'from-green-500 to-green-600', bgColor: 'bg-green-50', textColor: 'text-green-600' },
+const types = [
+  { id: 'opd', label: 'OPD billing', description: 'Consultations and procedures', icon: FileText, color: 'billing-type-blue' },
+  { id: 'misc', label: 'Lab & services', description: 'Tests and miscellaneous charges', icon: FlaskConical, color: 'billing-type-violet' },
+  { id: 'medicine', label: 'Medicine billing', description: 'Pharmacy sales and dispensing', icon: Receipt, color: 'billing-type-green' },
 ];
 
 export default function BillingPage() {
-  const [activeType, setActiveType] = useState('opd');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [bills, setBills] = useState<Bill[]>([]);
-  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
+  const [activeType, setActiveType] = useState('opd'); const [search, setSearch] = useState(''); const [date, setDate] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState('all'); const [loading, setLoading] = useState(true); const [error, setError] = useState(false);
+  const [bills, setBills] = useState<Bill[]>([]); const [total, setTotal] = useState(0);
+  const fetchBills = useCallback(async () => {
+    setLoading(true); setError(false);
+    try {
+      const params = { page: 1, limit: 100, ...(date ? { dateFrom: date, dateTo: date } : {}) };
+      const response = activeType === 'opd' ? await billingService.opd.getAll(params) : activeType === 'misc' ? await billingService.misc.getAll(params) : await billingService.medicine.getAll(params);
+      setBills(response.data?.bills || []); setTotal(response.data?.pagination?.total || response.data?.bills?.length || 0);
+    } catch (fetchError) { console.error('Failed to fetch bills:', fetchError); setError(true); }
+    finally { setLoading(false); }
+  }, [activeType, date]);
+  useEffect(() => { fetchBills(); }, [fetchBills]);
 
-  useEffect(() => {
-    const fetchBills = async () => {
-      setLoading(true);
-      try {
-        const params: { page?: number; limit?: number; dateFrom?: string; dateTo?: string } = {
-          page: 1,
-          limit: 20,
-        };
-        if (dateFilter) {
-          params.dateFrom = dateFilter;
-          params.dateTo = dateFilter;
-        }
+  const filtered = useMemo(() => bills.filter(bill => (!search || bill.billNo?.toLowerCase().includes(search.toLowerCase()) || bill.patientName?.toLowerCase().includes(search.toLowerCase()) || bill.patientPhone?.includes(search)) && (paymentStatus === 'all' || bill.paymentStatus === paymentStatus)), [bills, paymentStatus, search]);
+  const paid = bills.filter(bill => bill.paymentStatus === 'paid'); const pending = bills.filter(bill => bill.paymentStatus !== 'paid');
+  const collected = paid.reduce((sum, bill) => sum + (bill.total || 0), 0); const outstanding = pending.reduce((sum, bill) => sum + (bill.total || 0), 0);
+  const currency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
+  const formatDate = (value: string) => new Date(value).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  const clear = () => { setSearch(''); setDate(''); setPaymentStatus('all'); };
+  const hasFilters = Boolean(search || date) || paymentStatus !== 'all';
+  const exportBills = () => { const rows = [['Bill No', 'Patient', 'Phone', 'Date', 'Total', 'Payment Status'], ...filtered.map(bill => [bill.billNo, bill.patientName, bill.patientPhone, formatDate(bill.createdAt), String(bill.total), bill.paymentStatus])]; const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n'); const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `${activeType}-bills.csv`; anchor.click(); URL.revokeObjectURL(url); };
 
-        let response;
-        switch (activeType) {
-          case 'opd':
-            response = await billingService.opd.getAll(params);
-            break;
-          case 'misc':
-            response = await billingService.misc.getAll(params);
-            break;
-          case 'medicine':
-            response = await billingService.medicine.getAll(params);
-            break;
-          default:
-            response = { data: { bills: [], pagination: { total: 0, totalPages: 1 } } };
-        }
-
-        setBills(response.data?.bills || []);
-        if (response.data?.pagination) {
-          setPagination(response.data.pagination);
-        }
-      } catch (error) {
-        console.error('Failed to fetch bills:', error);
-        setBills([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBills();
-  }, [activeType, dateFilter]);
-
-  const filteredBills = bills.filter(bill => 
-    bill.billNo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    bill.patientName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-secondary-800 flex items-center gap-2">
-            <Receipt className="w-7 h-7 text-primary-600" />
-            Billing
-          </h1>
-          <p className="text-secondary-400 mt-1 font-sans">Manage invoices and billing</p>
-        </div>
-        <Link
-          href={`/dashboard/billing/${activeType}/new`}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-md shadow-primary-500/20 font-sans font-semibold"
-        >
-          <Plus className="w-5 h-5" />
-          New Bill
-        </Link>
-      </div>
-
-      {/* Bill Type Tabs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {billTypes.map((type) => (
-          <button
-            key={type.id}
-            onClick={() => setActiveType(type.id)}
-            className={`p-4 rounded-2xl border-2 transition-all text-left ${
-              activeType === type.id
-                ? `border-primary-500 ${type.bgColor} shadow-md`
-                : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
-            }`}
-          >
-            <div className={`w-10 h-10 bg-gradient-to-br ${type.color} rounded-xl flex items-center justify-center mb-3 shadow-md`}>
-              <type.icon className="w-5 h-5 text-white" />
-            </div>
-            <p className={`font-heading font-semibold ${activeType === type.id ? type.textColor : 'text-secondary-800'}`}>
-              {type.label}
-            </p>
-          </button>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-300" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search bills..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700 placeholder:text-secondary-300"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-secondary-400" />
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Bills List */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-          </div>
-        ) : filteredBills.length === 0 ? (
-          <div className="text-center py-12">
-            <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-secondary-400 font-sans">No bills found</p>
-            <Link
-              href={`/dashboard/billing/${activeType}/new`}
-              className="inline-flex items-center gap-2 mt-4 text-primary-600 hover:text-primary-700 font-sans font-semibold"
-            >
-              <Plus className="w-4 h-4" />
-              Create your first bill
-            </Link>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Bill No</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Patient</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden md:table-cell">Date</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Amount</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBills.map((bill) => (
-                  <tr key={bill._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-secondary-800 font-sans">{bill.billNo}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-secondary-800 font-sans">{bill.patientName}</p>
-                      <p className="text-sm text-secondary-400 font-sans">{bill.patientPhone}</p>
-                    </td>
-                    <td className="px-6 py-4 hidden md:table-cell">
-                      <p className="text-sm text-secondary-600 font-sans">{formatDate(bill.createdAt)}</p>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className="font-semibold text-secondary-800 font-sans flex items-center justify-end gap-1">
-                        <IndianRupee className="w-4 h-4" />
-                        {bill.total}
-                      </span>
-                      <span className={`text-xs font-semibold ${bill.paymentStatus === 'paid' ? 'text-green-600' : 'text-red-600'}`}>
-                        {bill.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/dashboard/billing/${activeType}/${bill._id}`}
-                          className="p-2 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"
-                          title="View"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          href={`/dashboard/billing/${activeType}/${bill._id}`}
-                          className="p-2 text-secondary-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                          title="Print"
-                        >
-                          <Printer className="w-4 h-4" />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Pagination info */}
-        {!loading && filteredBills.length > 0 && (
-          <div className="px-6 py-4 border-t border-gray-100">
-            <p className="text-sm text-secondary-400 font-sans">
-              Showing {filteredBills.length} of {pagination.total} bills
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  const summaries = [
+    { label: 'Total invoices', value: total, icon: Receipt, color: 'patients-stat-green' },
+    { label: 'Collected', value: currency(collected), icon: IndianRupee, color: 'patients-stat-blue' },
+    { label: 'Pending invoices', value: pending.length, icon: WalletCards, color: 'patients-stat-violet' },
+    { label: 'Outstanding', value: currency(outstanding), icon: IndianRupee, color: 'patients-stat-amber' },
+  ];
+  return <div className="space-y-6">
+    <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-700">Finance workspace</p><h1 className="text-2xl font-bold tracking-tight text-secondary-900">Billing</h1><p className="mt-1 text-sm text-secondary-500">Create invoices, track collections and review patient payments.</p></div><div className="flex flex-wrap gap-2"><button onClick={exportBills} className="btn-secondary border border-secondary-200 bg-white"><Download className="h-4 w-4" /> Export</button><Link href={`/dashboard/billing/${activeType}/new`} className="btn-primary"><Plus className="h-4 w-4" /> New bill</Link></div></section>
+    <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">{summaries.map(item => <article key={item.label} className={`patients-stat-card ${item.color}`}><span className="patients-stat-icon"><item.icon className="h-5 w-5" /></span><div className="min-w-0"><p className="truncate text-xl font-bold text-secondary-900">{item.value}</p><p className="text-xs font-medium text-secondary-500">{item.label}</p></div></article>)}</section>
+    <section className="grid gap-3 md:grid-cols-3">{types.map(type => <button key={type.id} onClick={() => setActiveType(type.id)} className={`billing-type-card ${type.color} ${activeType === type.id ? 'is-active' : ''}`}><span className="billing-type-icon"><type.icon className="h-5 w-5" /></span><span className="text-left"><span className="block text-sm font-bold text-secondary-900">{type.label}</span><span className="mt-0.5 block text-xs text-secondary-500">{type.description}</span></span></button>)}</section>
+    <section className="rounded-xl border border-secondary-200 bg-white p-4 shadow-sm"><div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_180px_180px_auto]"><label className="relative"><span className="sr-only">Search bills</span><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400" /><input value={search} onChange={event => setSearch(event.target.value)} className="input pl-9" placeholder="Search bill number, patient or phone" /></label><label className="relative"><Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400" /><input type="date" value={date} onChange={event => setDate(event.target.value)} className="input pl-9" aria-label="Billing date" /></label><select value={paymentStatus} onChange={event => setPaymentStatus(event.target.value)} className="input" aria-label="Payment status"><option value="all">All payment statuses</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="partial">Partial</option></select><button onClick={clear} disabled={!hasFilters} className="btn-secondary disabled:opacity-40"><X className="h-4 w-4" /> Clear</button></div></section>
+    <section className="overflow-hidden rounded-xl border border-secondary-200 bg-white shadow-sm">{loading ? <div className="space-y-3 p-5">{[1,2,3,4,5].map(item => <div key={item} className="h-16 animate-pulse rounded-lg bg-secondary-50" />)}</div> : error ? <EmptyState icon={Receipt} title="Unable to load bills" description="Check your connection and try loading billing records again." action={<button onClick={fetchBills} className="btn-primary">Try again</button>} /> : filtered.length === 0 ? <EmptyState icon={Receipt} title={hasFilters ? 'No matching bills' : `No ${activeType} bills yet`} description={hasFilters ? 'Try changing or clearing your filters.' : 'Create a bill to begin tracking collections.'} action={hasFilters ? <button onClick={clear} className="btn-secondary">Clear filters</button> : <Link href={`/dashboard/billing/${activeType}/new`} className="btn-primary"><Plus className="h-4 w-4" /> Create bill</Link>} /> : <><div className="overflow-x-auto"><table className="w-full min-w-[760px]"><thead><tr><th className="px-5 py-3 text-left">Invoice</th><th className="px-5 py-3 text-left">Patient</th><th className="px-5 py-3 text-left">Date</th><th className="px-5 py-3 text-left">Payment</th><th className="px-5 py-3 text-right">Total</th><th className="px-5 py-3 text-right">Actions</th></tr></thead><tbody>{filtered.map(bill => <tr key={bill._id} className="billing-row border-t border-secondary-100"><td className="px-5 py-4"><Link href={`/dashboard/billing/${activeType}/${bill._id}`} className="font-bold text-secondary-900 hover:text-primary-700">{bill.billNo}</Link><p className="mt-0.5 text-xs capitalize text-secondary-400">{activeType} invoice</p></td><td className="px-5 py-4"><p className="font-semibold text-secondary-800">{bill.patientName}</p><p className="text-xs text-secondary-400">{bill.patientPhone}</p></td><td className="px-5 py-4 text-sm text-secondary-600">{formatDate(bill.createdAt)}</td><td className="px-5 py-4"><StatusBadge status={bill.paymentStatus || 'pending'} /></td><td className="px-5 py-4 text-right text-base font-bold text-secondary-900">{currency(bill.total)}</td><td className="px-5 py-4"><div className="flex justify-end gap-1"><Link href={`/dashboard/billing/${activeType}/${bill._id}`} className="icon-button" title="View invoice" aria-label={`View ${bill.billNo}`}><Eye className="h-4 w-4" /></Link><Link href={`/dashboard/billing/${activeType}/${bill._id}`} className="icon-button" title="Print invoice" aria-label={`Print ${bill.billNo}`}><Printer className="h-4 w-4" /></Link></div></td></tr>)}</tbody></table></div><div className="border-t border-secondary-200 px-5 py-3 text-xs text-secondary-500">Showing {filtered.length} of {total} bills</div></>}</section>
+  </div>;
 }

@@ -1,97 +1,38 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
-import { Play, CheckCircle, ArrowRight } from 'lucide-react';
-
-const highlights = [
-  'Free 14-day trial',
-  'No credit card required',
-  'Cancel anytime',
-];
+import Link from 'next/link';
+import { ArrowRight, CalendarCheck2, Check, CirclePlay, FileHeart, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function Hero() {
-  return (
-    <section className="relative overflow-hidden flex items-center min-h-[calc(100vh-120px)]">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-white to-secondary-50/50 -z-10" />
-      <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-gradient-to-br from-primary-200/30 to-primary-100/20 rounded-full blur-3xl -z-10" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-secondary-200/30 to-secondary-100/20 rounded-full blur-3xl -z-10" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left Content */}
-          <div className="text-left space-y-5">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-100 to-primary-50 text-primary-700 px-4 py-2 rounded-full text-xs font-sans font-bold border border-primary-200/50 shadow-sm tracking-wide">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-600"></span>
-              </span>
-              Trusted by 5,000+ Healthcare Providers
-            </div>
-
-            <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-extrabold text-secondary-800 leading-[1.15]">
-              Modern Clinic Management
-              <span className="bg-gradient-to-r from-primary-500 via-primary-600 to-secondary-600 bg-clip-text text-transparent block mt-2">Made Simple & Powerful</span>
-            </h1>
-
-            <p className="font-sans text-base md:text-lg text-secondary-600 leading-relaxed max-w-xl">
-              Streamline your healthcare practice with our all-in-one platform. From appointments to prescriptions, 
-              billing to patient engagement — manage everything effortlessly.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-start gap-4">
-              <Link
-                href="/signup"
-                className="group w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-8 py-3.5 rounded-xl font-sans font-bold text-base transition-all hover:shadow-2xl hover:shadow-primary-500/40 hover:scale-105 flex items-center justify-center gap-2 tracking-wide"
-              >
-                Start Free Trial
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <button className="group w-full sm:w-auto bg-white/80 backdrop-blur-sm border-2 border-secondary-200 hover:border-primary-300 hover:bg-primary-50/50 text-secondary-700 px-8 py-3.5 rounded-xl font-sans font-bold text-base transition-all hover:shadow-xl flex items-center justify-center gap-2 tracking-wide">
-                <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-                  <Play size={16} className="text-primary-600 ml-0.5" fill="currentColor" />
-                </div>
-                Watch Demo
-              </button>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-5 text-xs text-secondary-500 font-sans font-semibold">
-              {highlights.map((item) => (
-                <div key={item} className="flex items-center gap-1.5">
-                  <CheckCircle size={16} className="text-primary-500" strokeWidth={2.5} />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* iMac Mockup - Clean Single Image Display */}
-          <div className="relative flex items-center justify-center">
-            <div className="relative w-full max-w-4xl">
-              {/* Animated Glow Effect */}
-              <div className="absolute -inset-8 bg-gradient-to-r from-primary-500/20 via-secondary-500/20 to-primary-500/20 rounded-3xl blur-3xl animate-glow"></div>
-              
-              {/* iMac Container with Hover Effect */}
-              <div className="relative animate-float transform hover:scale-[1.02] transition-all duration-500 ease-out">
-                {/* Shadow Layer */}
-                <div className="absolute inset-0 bg-gray-900/20 rounded-2xl blur-2xl translate-y-8"></div>
-                
-                {/* iMac Image */}
-                <div className="relative w-full">
-                  <Image
-                    src="/imacplaceholder.png"
-                    alt="Avia Wellness Dashboard on iMac"
-                    width={1280}
-                    height={853}
-                    className="w-full h-auto drop-shadow-2xl"
-                    priority
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+  return <section className="relative overflow-hidden border-b border-emerald-100 bg-[#f7fbf9] lg:h-[calc(100svh-108px)] lg:min-h-[560px] lg:max-h-[820px]">
+    <div className="absolute -right-48 -top-40 h-[560px] w-[560px] rounded-full bg-emerald-100/60 blur-3xl" aria-hidden="true" />
+    <div className="absolute -bottom-56 left-1/3 h-[440px] w-[440px] rounded-full bg-teal-100/50 blur-3xl" aria-hidden="true" />
+    <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:h-full lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-6 xl:gap-14">
+      <div className="max-w-xl">
+        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800 shadow-sm"><Sparkles className="h-3.5 w-3.5" /> Modern healthcare operations, simplified</div>
+        <h1 className="mt-5 font-heading text-4xl font-bold leading-[1.08] tracking-[-0.035em] text-slate-900 sm:text-5xl lg:text-[clamp(42px,3.8vw,56px)]">Run your clinic with clarity and confidence.</h1>
+        <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 lg:text-[17px]">One secure workspace for patients, appointments, consultations, pharmacy, billing and reports—designed for the way modern clinical teams work.</p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Link href="/signup" className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-bold text-white shadow-lg shadow-emerald-800/15 transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-xl">Start free trial <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></Link>
+          <Link href="#features" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 transition-all hover:border-emerald-300 hover:bg-emerald-50"><CirclePlay className="h-4 w-4 text-emerald-700" /> Explore features</Link>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-500">{['14-day free trial', 'No credit card', 'Secure patient data'].map(item => <span key={item} className="flex items-center gap-1.5"><span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"><Check className="h-3 w-3" /></span>{item}</span>)}</div>
+        <div className="mt-7 grid max-w-lg grid-cols-3 divide-x divide-slate-200 rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
+          <div className="px-3 first:pl-0"><CalendarCheck2 className="mb-2 h-5 w-5 text-emerald-700" /><p className="text-xs font-semibold text-slate-800">Faster scheduling</p></div>
+          <div className="px-3"><FileHeart className="mb-2 h-5 w-5 text-emerald-700" /><p className="text-xs font-semibold text-slate-800">Connected records</p></div>
+          <div className="px-3 last:pr-0"><ShieldCheck className="mb-2 h-5 w-5 text-emerald-700" /><p className="text-xs font-semibold text-slate-800">Secure workflows</p></div>
         </div>
       </div>
-    </section>
-  );
+
+      <div className="relative mx-auto w-full max-w-[650px] lg:mx-0 lg:max-h-[calc(100svh-170px)]">
+        <div className="absolute -inset-8 rounded-[36px] bg-emerald-200/30 blur-3xl" />
+        <div className="relative rounded-[24px] border border-white/80 bg-white/75 p-3 shadow-[0_30px_80px_rgba(15,65,50,0.18)] backdrop-blur-sm sm:p-5">
+          <div className="mb-3 flex items-center gap-1.5 px-1"><span className="h-2.5 w-2.5 rounded-full bg-red-300" /><span className="h-2.5 w-2.5 rounded-full bg-amber-300" /><span className="h-2.5 w-2.5 rounded-full bg-emerald-300" /><span className="ml-3 h-5 flex-1 rounded-md bg-slate-100" /></div>
+          <Image src="/imacplaceholder.png" alt="Avia Wellness clinic dashboard preview" width={1280} height={853} className="h-auto w-full rounded-xl" priority />
+        </div>
+        <div className="absolute -bottom-5 -left-3 hidden items-center gap-3 rounded-xl border border-emerald-100 bg-white p-3 shadow-xl sm:flex"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700"><CalendarCheck2 className="h-4 w-4" /></span><span><span className="block text-xs font-bold text-slate-800">Today’s clinic</span><span className="block text-[11px] text-slate-500">Everything in one view</span></span></div>
+      </div>
+    </div>
+  </section>;
 }

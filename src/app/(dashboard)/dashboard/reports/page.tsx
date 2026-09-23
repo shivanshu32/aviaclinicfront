@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  BarChart3, 
   Calendar,
   IndianRupee,
   Users,
@@ -122,18 +121,15 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-secondary-800 flex items-center gap-2">
-            <BarChart3 className="w-7 h-7 text-primary-600" />
-            Reports
-          </h1>
-          <p className="text-secondary-400 mt-1 font-sans">View and export clinic reports</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-700">Analytics workspace</p>
+          <h1 className="text-2xl font-bold tracking-tight text-secondary-900">Reports</h1>
+          <p className="mt-1 text-sm text-secondary-500">Review collections, appointments and patient documentation.</p>
         </div>
         {activeReport !== 'patients' && <button
           onClick={handleExport}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-md shadow-primary-500/20 font-sans font-semibold"
+          className="btn-primary"
         >
           <Download className="w-5 h-5" />
           Export CSV
@@ -146,16 +142,13 @@ export default function ReportsPage() {
           <button
             key={report.id}
             onClick={() => setActiveReport(report.id)}
-            className={`p-4 rounded-2xl border-2 transition-all text-left ${
+            className={`billing-type-card ${report.id === 'collection' ? 'billing-type-green' : report.id === 'appointments' ? 'billing-type-blue' : 'billing-type-violet'} ${
               activeReport === report.id
-                ? 'border-primary-500 bg-primary-50 shadow-md'
-                : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
+                ? 'is-active' : ''
             }`}
           >
-            <div className={`w-10 h-10 bg-gradient-to-br ${report.color} rounded-xl flex items-center justify-center mb-3 shadow-md`}>
-              <report.icon className="w-5 h-5 text-white" />
-            </div>
-            <p className={`font-heading font-semibold ${activeReport === report.id ? 'text-primary-600' : 'text-secondary-800'}`}>
+            <div className="billing-type-icon"><report.icon className="w-5 h-5" /></div>
+            <p className="font-heading font-semibold text-secondary-800">
               {report.label}
             </p>
           </button>

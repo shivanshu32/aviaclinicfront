@@ -58,9 +58,7 @@ export default function ServiceChargesPage() {
   const fetchServices = async () => {
     setLoading(true);
     try {
-      const params: { category?: string } = {};
-      if (selectedCategory) params.category = selectedCategory;
-      const response = await serviceItemService.getAll(params);
+      const response = await serviceItemService.getAll();
       setServices(response.data?.services || []);
     } catch (error) {
       console.error('Failed to fetch services:', error);
@@ -73,10 +71,10 @@ export default function ServiceChargesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchServices();
-  }, [selectedCategory]);
+  }, []);
 
   const filteredServices = services.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (!selectedCategory || s.category === selectedCategory) && s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleOpenModal = (service: ServiceItem | null = null) => {
@@ -157,22 +155,28 @@ export default function ServiceChargesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-secondary-800 flex items-center gap-2">
-            <FlaskConical className="w-7 h-7 text-primary-600" />
-            Service Charges
-          </h1>
-          <p className="text-secondary-400 mt-1 font-sans">Manage lab tests and service rates</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-700">Clinical catalogue</p>
+          <h1 className="text-2xl font-bold tracking-tight text-secondary-900">Service charges</h1>
+          <p className="mt-1 text-sm text-secondary-500">Manage laboratory, radiology and procedure pricing.</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-md shadow-primary-500/20 font-sans font-semibold"
+          className="btn-primary"
         >
           <Plus className="w-5 h-5" />
           Add Service
         </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          { label: 'Total services', value: services.length, icon: FlaskConical, color: 'patients-stat-green' },
+          { label: 'Laboratory', value: services.filter(item => item.category === 'laboratory').length, icon: FlaskConical, color: 'patients-stat-blue' },
+          { label: 'Radiology', value: services.filter(item => item.category === 'radiology').length, icon: Scan, color: 'patients-stat-violet' },
+          { label: 'Procedures', value: services.filter(item => item.category === 'procedure').length, icon: Stethoscope, color: 'patients-stat-amber' },
+        ].map(item => <article key={item.label} className={`patients-stat-card ${item.color}`}><span className="patients-stat-icon"><item.icon className="h-5 w-5" /></span><div><p className="text-xl font-bold text-secondary-900">{item.value}</p><p className="text-xs font-medium text-secondary-500">{item.label}</p></div></article>)}
       </div>
 
       {/* Category Filters */}

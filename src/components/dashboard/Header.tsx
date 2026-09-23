@@ -1,123 +1,18 @@
 'use client';
-
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { User, Menu, Maximize, Minimize, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Bell, ChevronDown, Menu, Search } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
-interface HeaderProps {
-  onToggleSidebar: () => void;
-  sidebarCollapsed: boolean;
-}
-
-export default function DashboardHeader({ onToggleSidebar, sidebarCollapsed }: HeaderProps) {
-  const router = useRouter();
-  const { user, logout } = useAuth();
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setShowUserMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error('Error attempting to enable fullscreen:', err);
-      });
-    } else {
-      document.exitFullscreen();
-    }
-  };
-
-  const handleLogout = () => {
-    setShowUserMenu(false);
-    logout();
-    router.push('/login');
-  };
-
-  return (
-    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 shadow-sm">
-      {/* Left side - Menu toggle */}
-      <div className="flex items-center">
-        <button
-          onClick={onToggleSidebar}
-          className="p-2 text-secondary-400 hover:text-secondary-600 hover:bg-gray-50 rounded-xl transition-all"
-          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Right side */}
-      <div className="flex items-center gap-2">
-        {/* Fullscreen toggle */}
-        <button 
-          onClick={toggleFullscreen}
-          className="hidden md:block p-2 text-secondary-400 hover:text-secondary-600 hover:bg-gray-50 rounded-xl transition-all"
-          title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-        >
-          {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-        </button>
-
-        {/* User menu */}
-        <div className="relative" ref={userMenuRef}>
-          <button 
-            onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-xl transition-all"
-          >
-            <div className="w-9 h-9 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center">
-              <User className="w-4 h-4 text-primary-600" />
-            </div>
-            <span className="text-sm font-semibold text-secondary-700 hidden sm:block font-sans">{user?.name || 'User'}</span>
-            <ChevronDown className={`w-4 h-4 text-secondary-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-          </button>
-
-          {/* Dropdown Menu */}
-          {showUserMenu && (
-            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl shadow-gray-200/50 border border-gray-100 py-2 z-50">
-              <div className="px-4 py-3 border-b border-gray-100">
-                <p className="text-sm font-semibold text-secondary-800 font-sans">{user?.name}</p>
-                <p className="text-xs text-secondary-400 capitalize font-sans">{user?.role}</p>
-              </div>
-              <Link
-                href="/dashboard/settings"
-                onClick={() => setShowUserMenu(false)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-secondary-600 hover:bg-gray-50 font-sans transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-                Settings
-              </Link>
-              <div className="border-t border-gray-100 mt-1 pt-1">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-sans transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
-  );
+const names: Record<string, string> = { dashboard: 'Dashboard', patients: 'Patients', doctors: 'Doctors', appointments: 'Appointments', billing: 'Billing', inventory: 'Pharmacy', services: 'Service Charges', reports: 'Reports', letterhead: 'Letterhead', whatsapp: 'WhatsApp', users: 'Staff', settings: 'Settings', add: 'Add', edit: 'Edit', book: 'Book appointment', new: 'New' };
+export default function DashboardHeader({ onToggleSidebar }: { onToggleSidebar: () => void; sidebarCollapsed: boolean }) {
+  const pathname = usePathname(); const { user, tenant } = useAuth();
+  const segments = pathname.split('/').filter(Boolean).slice(1); const current = segments[segments.length - 1];
+  const currentName = names[current] || (segments.length > 1 ? 'Details' : 'Dashboard');
+  return <header className="flex h-[68px] shrink-0 items-center gap-3 border-b border-secondary-200 bg-white px-4 lg:px-6">
+    <button onClick={onToggleSidebar} className="icon-button md:hidden" aria-label="Open navigation"><Menu className="h-5 w-5" /></button>
+    <div className="min-w-0 flex-1"><div className="hidden items-center gap-1 text-xs text-secondary-400 sm:flex"><span>Workspace</span><span>/</span><span className="text-secondary-600">{currentName}</span></div><p className="truncate text-sm font-semibold text-secondary-900 sm:hidden">{currentName}</p></div>
+    <div className="relative hidden w-full max-w-xs lg:block"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400" /><input type="search" placeholder="Search this workspace" aria-label="Global search" className="h-9 w-full rounded-lg border border-secondary-200 bg-secondary-50 pl-9 pr-3 text-sm placeholder:text-secondary-400" /></div>
+    <button className="icon-button relative" aria-label="Notifications" title="Notifications"><Bell className="h-[18px] w-[18px]" /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary-600 ring-2 ring-white" /></button>
+    <button className="hidden items-center gap-2 rounded-lg border border-secondary-200 px-2 py-1.5 text-left hover:bg-secondary-50 sm:flex" aria-label="User and clinic menu"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary-50 text-xs font-semibold text-primary-800">{user?.name?.slice(0, 1).toUpperCase() || 'U'}</span><span className="max-w-[150px]"><span className="block truncate text-xs font-semibold text-secondary-900">{tenant?.name || user?.name || 'Clinic'}</span><span className="block truncate text-[10px] capitalize text-secondary-500">{user?.role || 'Staff'}</span></span><ChevronDown className="h-3.5 w-3.5 text-secondary-400" /></button>
+  </header>;
 }

@@ -1,246 +1,31 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { 
-  Package, 
-  Plus,
-  Search,
-  AlertTriangle,
-  Clock,
-  Loader2,
-  Pill,
-  Eye,
-} from 'lucide-react';
+import { AlertTriangle, Boxes, Clock3, Download, Eye, IndianRupee, Package, Pill, Plus, Search, ShieldCheck, X } from 'lucide-react';
 import { medicineService, Medicine } from '@/lib/services';
+import EmptyState from '@/components/ui/EmptyState';
+import StatusBadge from '@/components/ui/StatusBadge';
 
-const tabs = [
-  { id: 'medicines', label: 'All Medicines', icon: Pill },
-  { id: 'low-stock', label: 'Low Stock', icon: AlertTriangle },
-  { id: 'expiring', label: 'Expiring Soon', icon: Clock },
-];
-
+const tabs = [{ id: 'all', label: 'All medicines', icon: Pill }, { id: 'low', label: 'Low stock', icon: AlertTriangle }, { id: 'expiring', label: 'Expiring soon', icon: Clock3 }];
 export default function InventoryPage() {
-  const [activeTab, setActiveTab] = useState('medicines');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
-  const [lowStockItems, setLowStockItems] = useState<Medicine[]>([]);
-  const [expiringItems, setExpiringItems] = useState<Medicine[]>([]);
-  const [stats, setStats] = useState({ total: 0, lowStock: 0, expiring: 0 });
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const doFetchMedicines = async () => {
-      try {
-        const response = await medicineService.getAll({ 
-          includeStock: true, 
-          limit: 100,
-          search: searchQuery || undefined 
-        });
-        setMedicines(response.data?.medicines || []);
-      } catch (error) {
-        console.error('Failed to fetch medicines:', error);
-      }
-    };
-    if (activeTab === 'medicines') {
-      doFetchMedicines();
-    }
-  }, [activeTab, searchQuery]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [medicinesRes, lowStockRes, expiringRes] = await Promise.all([
-        medicineService.getAll({ includeStock: true, limit: 100 }),
-        medicineService.getLowStock(),
-        medicineService.getExpiring(90),
-      ]);
-
-      setMedicines(medicinesRes.data?.medicines || []);
-      setLowStockItems(lowStockRes.data?.medicines || []);
-      setExpiringItems(expiringRes.data?.medicines || []);
-      setStats({
-        total: medicinesRes.data?.pagination?.total || medicinesRes.data?.medicines?.length || 0,
-        lowStock: lowStockRes.data?.medicines?.length || 0,
-        expiring: expiringRes.data?.medicines?.length || 0,
-      });
-    } catch (error) {
-      console.error('Failed to fetch inventory data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  
-  const getCurrentData = () => {
-    switch (activeTab) {
-      case 'low-stock': return lowStockItems;
-      case 'expiring': return expiringItems;
-      default: return medicines;
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-secondary-800 flex items-center gap-2">
-            <Package className="w-7 h-7 text-primary-600" />
-            Pharmacy & Inventory
-          </h1>
-          <p className="text-secondary-400 mt-1 font-sans">Manage medicines and stock</p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href="/dashboard/inventory/add"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-secondary-700 rounded-xl hover:bg-gray-50 transition-all font-sans font-semibold"
-          >
-            <Plus className="w-5 h-5" />
-            Add Medicine
-          </Link>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-secondary-400 font-sans">Total Medicines</p>
-              <p className="text-2xl font-heading font-bold text-secondary-800 mt-1">{stats.total}</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/20">
-              <Pill className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-secondary-400 font-sans">Low Stock Items</p>
-              <p className="text-2xl font-heading font-bold text-orange-600 mt-1">{stats.lowStock}</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20">
-              <AlertTriangle className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-secondary-400 font-sans">Expiring Soon</p>
-              <p className="text-2xl font-heading font-bold text-red-600 mt-1">{stats.expiring}</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-md shadow-red-500/20">
-              <Clock className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100">
-        <div className="border-b border-gray-100 p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex gap-1 overflow-x-auto">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all whitespace-nowrap font-sans flex items-center gap-2 ${
-                    activeTab === tab.id
-                      ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md shadow-primary-500/20'
-                      : 'text-secondary-500 hover:bg-gray-100'
-                  }`}
-                >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-300" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search medicines..."
-                className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700 placeholder:text-secondary-300"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-4">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-            </div>
-          ) : getCurrentData().length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-secondary-400 font-sans">No medicines found</p>
-              <Link
-                href="/dashboard/inventory/add"
-                className="inline-flex items-center gap-2 mt-4 text-primary-600 hover:text-primary-700 font-sans font-semibold"
-              >
-                <Plus className="w-4 h-4" />
-                Add your first medicine
-              </Link>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Medicine</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden md:table-cell">Category</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Stock</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getCurrentData().map((item: Medicine) => (
-                    <tr key={item._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-secondary-800 font-sans">{item.name}</p>
-                        <p className="text-sm text-secondary-400 font-sans">{item.genericName || item.medicineId}</p>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span className="px-2.5 py-1 text-xs font-semibold rounded-xl font-sans bg-gray-100 text-secondary-600 capitalize">
-                          {item.category || 'general'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`font-semibold font-sans ${
-                          (item.currentStock || 0) <= (item.reorderLevel || 10) ? 'text-red-600' : 'text-secondary-800'
-                        }`}>
-                          {item.currentStock || 0}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Link
-                          href={`/dashboard/inventory/${item._id}`}
-                          className="p-2 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all inline-flex"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  const [activeTab, setActiveTab] = useState('all'); const [search, setSearch] = useState(''); const [category, setCategory] = useState('all');
+  const [loading, setLoading] = useState(true); const [error, setError] = useState(false); const [medicines, setMedicines] = useState<Medicine[]>([]); const [lowStock, setLowStock] = useState<Medicine[]>([]); const [expiring, setExpiring] = useState<Medicine[]>([]); const [total, setTotal] = useState(0);
+  const fetchData = useCallback(async () => { setLoading(true); setError(false); try { const [allRes, lowRes, expiringRes] = await Promise.all([medicineService.getAll({ includeStock: true, limit: 100 }), medicineService.getLowStock(), medicineService.getExpiring(90)]); setMedicines(allRes.data?.medicines || []); setLowStock(lowRes.data?.medicines || []); setExpiring(expiringRes.data?.medicines || []); setTotal(allRes.data?.pagination?.total || allRes.data?.medicines?.length || 0); } catch (fetchError) { console.error('Failed to fetch inventory:', fetchError); setError(true); } finally { setLoading(false); } }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
+  const source = activeTab === 'low' ? lowStock : activeTab === 'expiring' ? expiring : medicines;
+  const categories = useMemo(() => Array.from(new Set(medicines.map(item => item.category).filter(Boolean))).sort(), [medicines]);
+  const visible = useMemo(() => source.filter(item => (!search || item.name.toLowerCase().includes(search.toLowerCase()) || item.genericName?.toLowerCase().includes(search.toLowerCase()) || item.medicineId?.toLowerCase().includes(search.toLowerCase())) && (category === 'all' || item.category === category)), [category, search, source]);
+  const healthy = Math.max(0, total - lowStock.length); const inventoryValue = medicines.reduce((sum, item) => sum + (item.currentStock || 0) * (item.sellingPrice || 0), 0);
+  const currency = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
+  const stockStatus = (item: Medicine) => (item.currentStock || 0) === 0 ? 'out-of-stock' : (item.currentStock || 0) <= (item.reorderLevel || 10) ? 'pending' : 'active';
+  const clear = () => { setSearch(''); setCategory('all'); };
+  const exportInventory = () => { const rows = [['Medicine ID', 'Medicine', 'Generic Name', 'Category', 'Stock', 'Reorder Level', 'Selling Price', 'Status'], ...visible.map(item => [item.medicineId, item.name, item.genericName || '', item.category || '', String(item.currentStock || 0), String(item.reorderLevel || 0), String(item.sellingPrice || 0), stockStatus(item)])]; const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n'); const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'pharmacy-inventory.csv'; anchor.click(); URL.revokeObjectURL(url); };
+  const summaries = [{ label: 'Total medicines', value: total, icon: Pill, color: 'patients-stat-green' }, { label: 'Healthy stock', value: healthy, icon: ShieldCheck, color: 'patients-stat-blue' }, { label: 'Low stock', value: lowStock.length, icon: AlertTriangle, color: 'patients-stat-amber' }, { label: 'Stock value', value: currency(inventoryValue), icon: IndianRupee, color: 'patients-stat-violet' }];
+  return <div className="space-y-6">
+    <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-700">Pharmacy operations</p><h1 className="text-2xl font-bold tracking-tight text-secondary-900">Pharmacy & inventory</h1><p className="mt-1 text-sm text-secondary-500">Monitor medicines, pricing, availability and stock alerts.</p></div><div className="flex flex-wrap gap-2"><button onClick={exportInventory} className="btn-secondary border border-secondary-200 bg-white"><Download className="h-4 w-4" /> Export</button><Link href="/dashboard/inventory/add" className="btn-primary"><Plus className="h-4 w-4" /> Add medicine</Link></div></section>
+    <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">{summaries.map(item => <article key={item.label} className={`patients-stat-card ${item.color}`}><span className="patients-stat-icon"><item.icon className="h-5 w-5" /></span><div className="min-w-0"><p className="truncate text-xl font-bold text-secondary-900">{item.value}</p><p className="text-xs font-medium text-secondary-500">{item.label}</p></div></article>)}</section>
+    {(lowStock.length > 0 || expiring.length > 0) && <section className="grid gap-3 sm:grid-cols-2">{lowStock.length > 0 && <button onClick={() => setActiveTab('low')} className="pharmacy-alert border-amber-200 bg-amber-50 text-left"><span className="bg-white text-amber-700"><AlertTriangle className="h-4 w-4" /></span><div><p className="text-sm font-bold text-amber-900">{lowStock.length} low-stock item{lowStock.length === 1 ? '' : 's'}</p><p className="text-xs text-amber-700">Review and restock before availability is affected.</p></div></button>}{expiring.length > 0 && <button onClick={() => setActiveTab('expiring')} className="pharmacy-alert border-red-200 bg-red-50 text-left"><span className="bg-white text-red-700"><Clock3 className="h-4 w-4" /></span><div><p className="text-sm font-bold text-red-900">{expiring.length} item{expiring.length === 1 ? '' : 's'} expiring soon</p><p className="text-xs text-red-700">Review batches expiring within 90 days.</p></div></button>}</section>}
+    <section className="rounded-xl border border-secondary-200 bg-white p-4 shadow-sm"><div className="flex flex-col gap-3 lg:flex-row lg:items-center"><div className="flex gap-1 overflow-x-auto">{tabs.map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-colors ${activeTab === tab.id ? 'bg-primary-700 text-white' : 'text-secondary-500 hover:bg-secondary-100'}`}><tab.icon className="h-4 w-4" />{tab.label}<span className={`rounded px-1.5 py-0.5 text-[10px] ${activeTab === tab.id ? 'bg-white/20' : 'bg-secondary-100'}`}>{tab.id === 'all' ? total : tab.id === 'low' ? lowStock.length : expiring.length}</span></button>)}</div><div className="hidden flex-1 lg:block" /><label className="relative lg:w-72"><span className="sr-only">Search medicines</span><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400" /><input value={search} onChange={event => setSearch(event.target.value)} className="input pl-9" placeholder="Search medicine, generic or ID" /></label><select value={category} onChange={event => setCategory(event.target.value)} className="input lg:w-48" aria-label="Medicine category"><option value="all">All categories</option>{categories.map(item => <option key={item}>{item}</option>)}</select>{(search || category !== 'all') && <button onClick={clear} className="icon-button" aria-label="Clear filters" title="Clear filters"><X className="h-4 w-4" /></button>}</div></section>
+    <section className="overflow-hidden rounded-xl border border-secondary-200 bg-white shadow-sm">{loading ? <div className="space-y-3 p-5">{[1,2,3,4,5].map(item => <div key={item} className="h-16 animate-pulse rounded-lg bg-secondary-50" />)}</div> : error ? <EmptyState icon={Package} title="Unable to load inventory" description="Check your connection and try loading pharmacy stock again." action={<button onClick={fetchData} className="btn-primary">Try again</button>} /> : visible.length === 0 ? <EmptyState icon={Boxes} title={(search || category !== 'all') ? 'No matching medicines' : activeTab === 'low' ? 'No low-stock medicines' : activeTab === 'expiring' ? 'No medicines expiring soon' : 'No medicines available'} description={(search || category !== 'all') ? 'Try changing or clearing your search and category filters.' : activeTab === 'all' ? 'Add the first medicine to begin managing pharmacy stock.' : 'There are no medicines requiring attention in this category.'} action={(search || category !== 'all') ? <button onClick={clear} className="btn-secondary">Clear filters</button> : activeTab === 'all' ? <Link href="/dashboard/inventory/add" className="btn-primary"><Plus className="h-4 w-4" /> Add medicine</Link> : undefined} /> : <><div className="overflow-x-auto"><table className="w-full min-w-[820px]"><thead><tr><th className="px-5 py-3 text-left">Medicine</th><th className="px-5 py-3 text-left">Category</th><th className="px-5 py-3 text-left">Manufacturer</th><th className="px-5 py-3 text-right">Selling price</th><th className="px-5 py-3 text-right">Stock</th><th className="px-5 py-3 text-left">Status</th><th className="px-5 py-3 text-right">Actions</th></tr></thead><tbody>{visible.map(item => <tr key={item._id} className="pharmacy-row border-t border-secondary-100"><td className="px-5 py-4"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-700"><Pill className="h-4 w-4" /></span><div><Link href={`/dashboard/inventory/${item._id}`} className="font-bold text-secondary-900 hover:text-primary-700">{item.name}</Link><p className="text-xs text-secondary-400">{item.genericName || item.medicineId}</p></div></div></td><td className="px-5 py-4"><span className="rounded-md bg-secondary-100 px-2 py-1 text-xs font-semibold capitalize text-secondary-600">{item.category || 'General'}</span></td><td className="px-5 py-4 text-sm text-secondary-600">{item.manufacturer || '—'}</td><td className="px-5 py-4 text-right font-semibold text-secondary-800">{item.sellingPrice ? currency(item.sellingPrice) : '—'}</td><td className="px-5 py-4 text-right"><p className={`text-base font-bold ${(item.currentStock || 0) <= (item.reorderLevel || 10) ? 'text-red-600' : 'text-secondary-900'}`}>{item.currentStock || 0}</p><p className="text-[10px] text-secondary-400">Reorder at {item.reorderLevel || 0}</p></td><td className="px-5 py-4"><StatusBadge status={stockStatus(item)} /></td><td className="px-5 py-4 text-right"><Link href={`/dashboard/inventory/${item._id}`} className="icon-button inline-flex" aria-label={`View ${item.name}`} title="View medicine"><Eye className="h-4 w-4" /></Link></td></tr>)}</tbody></table></div><div className="border-t border-secondary-200 px-5 py-3 text-xs text-secondary-500">Showing {visible.length} medicine{visible.length === 1 ? '' : 's'}</div></>}</section>
+  </div>;
 }

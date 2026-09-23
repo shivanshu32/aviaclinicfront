@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Select from '@/components/ui/Select';
+import PermissionManager from '@/components/staff/PermissionManager';
+import type { PermissionMap } from '@/lib/services/rbacService';
 
 interface UserData {
   _id: string;
@@ -21,6 +23,11 @@ interface UserData {
   email: string;
   role: string;
   phone?: string;
+  department?: string;
+  designation?: string;
+  status?: 'active' | 'inactive' | 'suspended';
+  permissions?: PermissionMap;
+  lastLogin?: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -50,12 +57,14 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [permissionUser, setPermissionUser] = useState<UserData | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     role: 'receptionist',
     phone: '',
+    department: '', designation: '', status: 'active',
   });
 
   useEffect(() => {
@@ -98,6 +107,7 @@ export default function UsersPage() {
         password: '',
         role: user.role || 'receptionist',
         phone: user.phone || '',
+        department: user.department || '', designation: user.designation || '', status: user.status || (user.isActive === false ? 'inactive' : 'active'),
       });
     } else {
       setEditingUser(null);
@@ -107,6 +117,7 @@ export default function UsersPage() {
         password: '',
         role: 'receptionist',
         phone: '',
+        department: '', designation: '', status: 'active',
       });
     }
     setShowModal(true);
@@ -115,7 +126,7 @@ export default function UsersPage() {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingUser(null);
-    setFormData({ name: '', email: '', password: '', role: 'receptionist', phone: '' });
+    setFormData({ name: '', email: '', password: '', role: 'receptionist', phone: '', department: '', designation: '', status: 'active' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,6 +144,10 @@ export default function UsersPage() {
       toast.error('Password is required for new users');
       return;
     }
+    if (formData.password && formData.password.length < 10) {
+      toast.error('Password must be at least 10 characters');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -145,6 +160,8 @@ export default function UsersPage() {
         name: formData.name,
         email: formData.email,
       };
+      const currentStatus = editingUser?.status || (editingUser?.isActive === false ? 'inactive' : 'active');
+      if (!editingUser || (editingUser.role !== 'owner' && formData.status !== currentStatus)) payload.status = formData.status;
 
       // Owner roles cannot be changed. Omit unchanged roles on updates too.
       if (!editingUser || (editingUser.role !== 'owner' && formData.role !== editingUser.role)) {
@@ -155,6 +172,8 @@ export default function UsersPage() {
       if (formData.phone.trim()) {
         payload.phone = formData.phone.trim();
       }
+      if (formData.department.trim()) payload.department = formData.department.trim();
+      if (formData.designation.trim()) payload.designation = formData.designation.trim();
       
       if (formData.password) {
         payload.password = formData.password;
@@ -219,22 +238,28 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-secondary-800 flex items-center gap-2">
-            <Shield className="w-7 h-7 text-primary-600" />
-            User Management
-          </h1>
-          <p className="text-secondary-400 mt-1 font-sans">Manage staff accounts and permissions</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-700">Administration</p>
+          <h1 className="text-2xl font-bold tracking-tight text-secondary-900">Staff</h1>
+          <p className="mt-1 text-sm text-secondary-500">Manage staff accounts, roles and access status.</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-md shadow-primary-500/20 font-sans font-semibold"
+          className="btn-primary"
         >
           <Plus className="w-5 h-5" />
           Add User
         </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          { label: 'Total staff', value: users.length, icon: Shield, color: 'patients-stat-green' },
+          { label: 'Active accounts', value: users.filter(item => item.isActive !== false).length, icon: UserCheck, color: 'patients-stat-blue' },
+          { label: 'Clinical users', value: users.filter(item => item.role === 'doctor').length, icon: User, color: 'patients-stat-violet' },
+          { label: 'Inactive accounts', value: users.filter(item => item.isActive === false).length, icon: UserX, color: 'patients-stat-amber' },
+        ].map(item => <article key={item.label} className={`patients-stat-card ${item.color}`}><span className="patients-stat-icon"><item.icon className="h-5 w-5" /></span><div><p className="text-xl font-bold text-secondary-900">{item.value}</p><p className="text-xs font-medium text-secondary-500">{item.label}</p></div></article>)}
       </div>
 
       {/* Search */}
@@ -275,7 +300,7 @@ export default function UsersPage() {
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">User</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden md:table-cell">Email</th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden md:table-cell">Department / Designation</th>
                   <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Role</th>
                   <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden lg:table-cell">Status</th>
                   <th className="text-right px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Actions</th>
@@ -298,7 +323,7 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 hidden md:table-cell">
-                      <p className="text-sm text-secondary-600 font-sans">{user.email}</p>
+                      <p className="text-sm font-medium text-secondary-700">{user.department || '—'}</p><p className="text-xs text-secondary-400">{user.designation || user.email}</p>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-xl font-sans capitalize ${ROLE_COLORS[user.role] || 'bg-gray-100 text-gray-700'}`}>
@@ -325,6 +350,7 @@ export default function UsersPage() {
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
+                        {user.role !== 'owner' && <button onClick={() => setPermissionUser(user)} className="p-2 text-secondary-400 hover:bg-primary-50 hover:text-primary-700 rounded-xl transition-all" title="Manage permissions" aria-label={`Manage ${user.name} permissions`}><Shield className="w-4 h-4" /></button>}
                         {user.role !== 'owner' && (
                           <button
                             onClick={() => handleDeleteUser(user._id)}
@@ -382,6 +408,9 @@ export default function UsersPage() {
                     <p className="mt-1.5 text-xs text-gray-500">The owner role cannot be changed. You can still edit other details.</p>
                   )}
                 </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Department</label><input value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} className="input" placeholder="e.g. Reception" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Designation</label><input value={formData.designation} onChange={(e) => setFormData({ ...formData, designation: e.target.value })} className="input" placeholder="e.g. Front desk executive" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Account status</label><Select value={formData.status} onChange={(v) => setFormData({ ...formData, status: v })} options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }, { value: 'suspended', label: 'Suspended' }]} disabled={editingUser?.role === 'owner'} /></div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
                   <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500" placeholder="Phone number" />
@@ -397,6 +426,7 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+      {permissionUser && <PermissionManager user={permissionUser} onClose={() => setPermissionUser(null)} onSaved={fetchUsers} />}
     </div>
   );
 }

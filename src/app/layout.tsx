@@ -1,27 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans, Poppins } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-jakarta",
-  display: "swap",
-});
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
-  display: "swap",
-});
+const inter = localFont({ src: "./fonts/GeistVF.woff", variable: "--font-inter", display: "swap" });
+const plusJakarta = localFont({ src: "./fonts/GeistVF.woff", variable: "--font-jakarta", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Avia Wellness | Modern Clinic Management Software",
@@ -37,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${plusJakarta.variable} ${poppins.variable} antialiased`}
+        className={`${inter.variable} ${plusJakarta.variable} antialiased`}
       >
         <AuthProvider>
           {children}
@@ -46,12 +30,12 @@ export default function RootLayout({
             toastOptions={{
               duration: 3000,
               style: {
-                background: '#363636',
+                background: '#172321',
                 color: '#fff',
               },
               success: {
                 style: {
-                  background: '#22c55e',
+                  background: '#74AA60',
                 },
               },
               error: {

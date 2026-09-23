@@ -3,13 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #1e3a5f;
+  --background: #f7faf8;
+  --foreground: #16332b;
+  --surface: #ffffff;
+  --border: #e3e9e7;
+  --muted: #60736c;
+  --brand: #74AA60;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 14px;
 }
 
 @layer base {
@@ -21,18 +27,17 @@ body {
     @apply border-gray-200;
   }
 
-  /* Apply Poppins font to form elements */
   input,
   textarea,
   select,
   label,
   button {
-    font-family: var(--font-poppins), system-ui, sans-serif;
+    font-family: inherit;
   }
 
   input::placeholder,
   textarea::placeholder {
-    font-family: var(--font-poppins), system-ui, sans-serif;
+    font-family: inherit;
   }
 
   ::-webkit-scrollbar {
@@ -54,11 +59,12 @@ body {
 
 @layer components {
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-100;
+    @apply bg-white rounded-xl border border-gray-200;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.03);
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex min-h-10 items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-primary {
@@ -70,7 +76,7 @@ body {
   }
 
   .input {
-    @apply w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed;
+    @apply w-full min-h-10 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-600 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed;
   }
 
   /* Custom select styling to match inputs */
@@ -105,6 +111,33 @@ body {
   .nav-item-active {
     @apply nav-item bg-primary-50 text-primary-700 hover:bg-primary-50 hover:text-primary-700;
   }
+
+  .page-header { @apply flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between; }
+  .page-title { @apply text-2xl font-heading font-bold tracking-tight; color: #16332b; }
+  .page-description { @apply mt-1 text-sm; color: #60736c; }
+  .page-eyebrow { @apply mb-1 text-xs font-semibold uppercase tracking-widest text-primary-700; }
+  .page-actions { @apply flex flex-wrap items-center gap-2; }
+  .section-title { @apply text-base font-heading font-semibold text-secondary-900; }
+  .surface { @apply rounded-xl border border-gray-200 bg-white; box-shadow: 0 1px 2px rgb(15 23 42 / 0.03); }
+  .toolbar { @apply flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-3 sm:flex-row sm:items-center; }
+  .icon-button { @apply inline-flex h-10 w-10 items-center justify-center rounded-lg text-secondary-500 transition-colors hover:bg-secondary-100 hover:text-secondary-800 focus:outline-none focus:ring-2 focus:ring-primary-500/30; }
+  .status-badge { @apply inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold capitalize; }
+  .status-success { @apply bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/15; }
+  .status-warning { @apply bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/15; }
+  .status-danger { @apply bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/15; }
+  .status-info { @apply bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-600/15; }
+  .status-neutral { @apply bg-secondary-100 text-secondary-600 ring-1 ring-inset ring-secondary-600/10; }
+  .empty-state { @apply flex flex-col items-center justify-center px-6 py-14 text-center; }
+  .empty-state-icon { @apply mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary-100 text-secondary-400; }
+  .empty-state-icon svg { @apply h-6 w-6; }
+  .empty-state h3 { @apply text-base font-semibold text-secondary-900; }
+  .empty-state p { @apply mt-1 max-w-sm text-sm text-secondary-500; }
+
+  table { @apply text-sm; }
+  thead { @apply bg-secondary-50; }
+  th { @apply font-semibold text-secondary-500; }
+  tbody tr { @apply transition-colors hover:bg-secondary-50/70; }
+  input, textarea, select { @apply focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-600; }
 }
 
 @layer utilities {
@@ -121,3 +154,138 @@ body {
     display: none;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+/* Compatibility layer for existing module markup while it migrates to primitives. */
+.dashboard-main .rounded-2xl { border-radius: 0.75rem !important; }
+.dashboard-main .shadow-md, .dashboard-main .shadow-lg, .dashboard-main .shadow-xl { box-shadow: 0 1px 3px rgb(15 23 42 / 0.08) !important; }
+.dashboard-main [class*="bg-gradient-to-r"], .dashboard-main [class*="bg-gradient-to-br"] {
+  background-image: none !important;
+  background-color: #74AA60 !important;
+}
+.dashboard-main [class*="bg-gradient-to-r"] svg, .dashboard-main [class*="bg-gradient-to-br"] svg { color: #ffffff !important; }
+.dashboard-main a[class*="from-primary"], .dashboard-main button[class*="from-primary"] { background-color: #74AA60 !important; }
+.dashboard-main .hover\:shadow-md:hover { box-shadow: 0 2px 8px rgb(15 23 42 / 0.07) !important; }
+.dashboard-main :is(button, a, input, select, textarea):focus-visible { outline: 2px solid #74AA60; outline-offset: 2px; }
+
+/* Keep legacy module accents inside one calm green-and-white product palette. */
+.dashboard-main :is(.bg-blue-50, .bg-green-50, .bg-purple-50, .bg-orange-50) { background-color: #f0faf5 !important; }
+.dashboard-main :is(.bg-blue-100, .bg-green-100, .bg-purple-100, .bg-orange-100) { background-color: #dff4e9 !important; }
+.dashboard-main :is(.border-blue-100, .border-green-100, .border-purple-100, .border-orange-100) { border-color: #cce9db !important; }
+.dashboard-main :is(.text-blue-500, .text-blue-600, .text-blue-700, .text-green-500, .text-green-600, .text-green-700, .text-purple-500, .text-purple-600, .text-purple-700, .text-orange-500, .text-orange-600, .text-orange-700) { color: #147253 !important; }
+.dashboard-main h1, .dashboard-main h2, .dashboard-main h3 { color: #16332b; }
+.dashboard-main p { text-rendering: optimizeLegibility; }
+
+@media (max-width: 640px) {
+  .dashboard-main .grid-cols-2, .dashboard-main .grid-cols-3 { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-main .col-span-2, .dashboard-main .col-span-3 { grid-column: span 1 / span 1; }
+  .dashboard-main table { min-width: 680px; }
+}
+
+.dashboard-sidebar {
+  color: white;
+  border-right: 1px solid rgb(255 255 255 / 0.1);
+  background: #74AA60;
+  box-shadow: 8px 0 30px rgb(116 170 96 / 0.18);
+}
+
+.dashboard-kpi-card {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgb(15 23 42 / 0.05);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+.dashboard-kpi-card::after {
+  content: '';
+  position: absolute;
+  inset: auto -24px -34px auto;
+  width: 92px;
+  height: 92px;
+  border-radius: 999px;
+  background: var(--card-soft);
+  opacity: .72;
+}
+.dashboard-kpi-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--card-border);
+  box-shadow: 0 14px 30px rgb(15 23 42 / 0.11);
+}
+.dashboard-kpi-icon { color: var(--card-color); background: var(--card-soft); }
+.dashboard-card-teal { --card-color: #74AA60; --card-soft: #e7f1e2; --card-border: #afd19f; }
+.dashboard-card-blue { --card-color: #2563a7; --card-soft: #e3f1ff; --card-border: #9bcaf5; }
+.dashboard-card-violet { --card-color: #7651b3; --card-soft: #f0e9ff; --card-border: #c9b5ee; }
+.dashboard-card-amber { --card-color: #b66516; --card-soft: #fff1d9; --card-border: #f1ca86; }
+
+.dashboard-side-card { box-shadow: 0 4px 18px rgb(15 23 42 / 0.045); }
+.dashboard-quick-action { transition: background-color 160ms ease, transform 160ms ease; }
+.dashboard-quick-action:hover { transform: translateX(3px); background: var(--quick-soft); }
+.dashboard-quick-action .quick-action-icon { color: var(--quick-color); background: var(--quick-soft); }
+.quick-teal { --quick-color: #74AA60; --quick-soft: #edf5e9; }
+.quick-blue { --quick-color: #2563a7; --quick-soft: #e8f3ff; }
+.quick-violet { --quick-color: #7651b3; --quick-soft: #f1ebff; }
+.quick-rose { --quick-color: #b63f68; --quick-soft: #ffebf1; }
+.quick-amber { --quick-color: #af651c; --quick-soft: #fff2df; }
+
+.patients-stat-card {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-height: 88px;
+  padding: 1rem;
+  border: 1px solid var(--patient-border);
+  border-radius: .75rem;
+  background: linear-gradient(135deg, #fff 45%, var(--patient-soft));
+  box-shadow: 0 3px 14px rgb(15 23 42 / .045);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.patients-stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgb(15 23 42 / .09); }
+.patients-stat-icon { display: flex; width: 42px; height: 42px; flex: none; align-items: center; justify-content: center; border-radius: 10px; color: var(--patient-color); background: var(--patient-soft); }
+.patients-stat-green { --patient-color: #74AA60; --patient-soft: #e7f1e2; --patient-border: #cfe3c6; }
+.patients-stat-blue { --patient-color: #2563a7; --patient-soft: #e4f1ff; --patient-border: #bedaf5; }
+.patients-stat-violet { --patient-color: #7651b3; --patient-soft: #efe8ff; --patient-border: #d7c8f2; }
+.patients-stat-amber { --patient-color: #ad631b; --patient-soft: #fff0d9; --patient-border: #f2d29f; }
+
+.doctor-directory-card {
+  box-shadow: 0 4px 16px rgb(15 23 42 / .045);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.doctor-directory-card:hover {
+  transform: translateY(-4px);
+  border-color: #9ed9c1;
+  box-shadow: 0 14px 30px rgb(15 23 42 / .1);
+}
+
+.appointment-date-panel {
+  background: linear-gradient(110deg, #ffffff 0%, #f0faf5 58%, #e4f5ed 100%);
+}
+.appointment-row {
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.appointment-row:hover {
+  position: relative;
+  z-index: 1;
+  background: #f7fcf9;
+  box-shadow: inset 3px 0 0 #74AA60;
+}
+
+.billing-type-card { display: flex; align-items: center; gap: .75rem; min-height: 82px; padding: 1rem; border: 1px solid #e2e8f0; border-radius: .75rem; background: white; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+.billing-type-card:hover { transform: translateY(-2px); border-color: var(--billing-color); box-shadow: 0 8px 20px rgb(15 23 42 / .08); }
+.billing-type-card.is-active { border-color: var(--billing-color); background: var(--billing-soft); box-shadow: inset 0 0 0 1px var(--billing-color); }
+.billing-type-icon { display: flex; width: 42px; height: 42px; flex: none; align-items: center; justify-content: center; border-radius: 10px; color: var(--billing-color); background: var(--billing-soft); }
+.billing-type-blue { --billing-color: #2870ae; --billing-soft: #e8f3ff; }
+.billing-type-violet { --billing-color: #7651b3; --billing-soft: #f1ebff; }
+.billing-type-green { --billing-color: #74AA60; --billing-soft: #e7f1e2; }
+.billing-row, .pharmacy-row { transition: background-color 160ms ease, box-shadow 160ms ease; }
+.billing-row:hover, .pharmacy-row:hover { background: #f7fbf5; box-shadow: inset 3px 0 0 #74AA60; }
+
+/* Public-site utilities previously used darker emerald shades. Keep one brand green. */
+body :is(.bg-emerald-700, .bg-emerald-600) { background-color: #74AA60 !important; }
+body :is(.hover\:bg-emerald-800:hover, .hover\:bg-emerald-700:hover) { background-color: #74AA60 !important; filter: brightness(.94); }
+body :is(.text-emerald-700, .text-emerald-800, .text-emerald-900, .text-green-600, .text-green-700, .text-green-800, .text-green-900) { color: #74AA60 !important; }
+body :is(.border-emerald-300, .border-emerald-200) { border-color: #afd19f !important; }
+.pharmacy-alert { display: flex; align-items: flex-start; gap: .75rem; padding: 1rem; border-width: 1px; border-radius: .75rem; transition: transform 160ms ease, box-shadow 160ms ease; }
+.pharmacy-alert:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgb(15 23 42 / .07); }
+.pharmacy-alert > span { display: flex; width: 36px; height: 36px; flex: none; align-items: center; justify-content: center; border-radius: 9px; }

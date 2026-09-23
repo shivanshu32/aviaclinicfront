@@ -7,6 +7,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService, User, Tenant } from '@/lib/services';
+import { rbacService, AccessData } from '@/lib/services/rbacService';
 
 interface AuthContextType {
   user: User | null;
@@ -18,6 +19,9 @@ interface AuthContextType {
   logout: () => void;
   checkAuth: () => Promise<void>;
   refreshTenant: () => Promise<void>;
+  access: AccessData | null;
+  can: (module: string, action?: string) => boolean;
+  refreshAccess: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -27,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [access, setAccess] = useState<AccessData | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -45,6 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.data.user);
       setTenant(response.data.tenant);
       setIsAuthenticated(true);
+      const accessResponse = await rbacService.getAccess();
+      setAccess(accessResponse.data);
     } catch {
       authService.logout();
       setUser(null);
@@ -60,6 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(response.data.user);
     setTenant(response.data.tenant);
     setIsAuthenticated(true);
+    const accessResponse = await rbacService.getAccess();
+    setAccess(accessResponse.data);
   };
 
   const logout = () => {
@@ -67,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setTenant(null);
     setIsAuthenticated(false);
+    setAccess(null);
   };
 
   const refreshTenant = async () => {
@@ -79,6 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const isOnboardingComplete = tenant?.onboarding?.completed ?? false;
+  const refreshAccess = async () => { const response = await rbacService.getAccess(); setAccess(response.data); };
+  const can = (module: string, action = 'view') => access?.isSuperAdmin === true || access?.permissions?.[`${module}.${action}`] === true;
 
   const value = {
     user,
@@ -90,6 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     checkAuth,
     refreshTenant,
+    access,
+    can,
+    refreshAccess,
   };
 
   return (

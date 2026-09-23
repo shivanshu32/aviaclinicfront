@@ -588,17 +588,12 @@ export default function WhatsAppIntegrationPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-secondary-800 flex items-center gap-2">
-            <MessageSquare className="w-7 h-7 text-green-600" />
-            WhatsApp Integration
-          </h1>
-          <p className="text-secondary-400 mt-1 font-sans">
-            Connect and manage your WhatsApp business numbers
-          </p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-700">Patient communication</p>
+          <h1 className="text-2xl font-bold tracking-tight text-secondary-900">WhatsApp integration</h1>
+          <p className="mt-1 text-sm text-secondary-500">Connect business numbers for reminders and patient communication.</p>
         </div>
         <div className="flex items-center gap-3">
           {isAuthenticated && (
@@ -614,7 +609,7 @@ export default function WhatsAppIntegrationPage() {
               setSetupStep(isAuthenticated ? 'create' : 'auth');
               setShowSetupModal(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium"
+            className="btn-primary"
           >
             <Plus className="w-5 h-5" />
             Add Number
@@ -622,9 +617,18 @@ export default function WhatsAppIntegrationPage() {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          { label: 'Connected numbers', value: sessions.length, icon: Phone, color: 'patients-stat-green' },
+          { label: 'Active sessions', value: sessions.filter(item => item.status === 'logged_in').length, icon: MessageSquare, color: 'patients-stat-blue' },
+          { label: 'Awaiting QR', value: sessions.filter(item => item.status === 'pending_qr').length, icon: QrCode, color: 'patients-stat-violet' },
+          { label: 'Integration status', value: isAuthenticated ? 'Online' : 'Offline', icon: AlertCircle, color: 'patients-stat-amber' },
+        ].map(item => <article key={item.label} className={`patients-stat-card ${item.color}`}><span className="patients-stat-icon"><item.icon className="h-5 w-5" /></span><div><p className="text-xl font-bold text-secondary-900">{item.value}</p><p className="text-xs font-medium text-secondary-500">{item.label}</p></div></article>)}
+      </div>
+
       {/* Not Authenticated State */}
       {!isAuthenticated && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+        <div className="rounded-xl border border-primary-100 bg-white p-8 text-center shadow-sm">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="w-10 h-10 text-green-600" />
           </div>
@@ -648,7 +652,7 @@ export default function WhatsAppIntegrationPage() {
 
       {/* Sessions List */}
       {isAuthenticated && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-secondary-200 bg-white shadow-sm">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Connected Numbers</h2>
             <button

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { appointmentLetterheadNotes } from '@/lib/appointmentLetterhead';
-import { FileText, Printer, Loader2 } from 'lucide-react';
+import { Printer, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { patientService, doctorService, appointmentService, type Appointment, type Patient, type Doctor } from '@/lib/services';
 import { settingsService } from '@/lib/services/settingsService';
@@ -171,12 +171,12 @@ export default function LetterheadPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap justify-between items-center gap-3">
-        <div><h1 className="text-2xl font-bold text-secondary-800 flex items-center gap-2"><FileText className="text-primary-600" />Letterhead</h1><p className="mt-1 text-sm text-gray-500">Choose a patient to fill your Avia Wellness letterhead.</p></div>
-        <button onClick={print} disabled={!patient || !date || !imageReady || overflow || printing || loadingAppointment || appointmentError} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50">{printing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}Print / Save PDF</button>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-700">Clinical documents</p><h1 className="text-2xl font-bold tracking-tight text-secondary-900">Letterhead</h1><p className="mt-1 text-sm text-secondary-500">Prepare a professional patient document using your clinic letterhead.</p></div>
+        <button onClick={print} disabled={!patient || !date || !imageReady || overflow || printing || loadingAppointment || appointmentError} className="btn-primary disabled:opacity-50">{printing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}Print / Save PDF</button>
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-[340px_minmax(0,1fr)] gap-5 items-start">
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 space-y-4">
+        <div className="space-y-4 rounded-xl border border-secondary-200 bg-white p-5 shadow-sm">
           {loadingAppointment && <p role="status" className="text-sm text-primary-700">Loading appointment letterhead…</p>}
           {appointmentError && <p role="alert" className="text-sm text-red-600">Unable to load this appointment. <button onClick={() => setRetryAppointment(value => value + 1)} className="underline">Retry</button></p>}
           <label className="block text-sm font-medium text-gray-700">Search patient<input value={search} onChange={event => setSearch(event.target.value)} placeholder="Name or phone" className={field} /></label>
@@ -196,7 +196,7 @@ export default function LetterheadPage() {
         <div className="min-w-0">
           {imageError && <p role="alert" className="mb-3 text-red-600">Unable to load the letterhead image. Reload the page to retry.</p>}
           {overflow && <p role="alert" className="mb-3 rounded-xl bg-orange-50 p-3 text-orange-800">The notes exceed the writing area. Shorten them before printing so no content is cut off.</p>}
-          <div className="rounded-xl border border-gray-200 shadow-sm overflow-hidden max-w-[794px] mx-auto">
+          <div className="mx-auto max-w-[794px] overflow-hidden rounded-xl border border-secondary-200 bg-white shadow-[0_12px_35px_rgba(15,23,42,.1)]">
             <div ref={paper} className="letterhead-paper">
               {/* The uploaded artwork is also used as an image in print, independent of background-print settings. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
