@@ -24,6 +24,7 @@ export default function NewOPDBillPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const patientIdFromUrl = searchParams.get('patient');
+  const doctorIdFromUrl = searchParams.get('doctor');
 
   const [saving, setSaving] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -56,7 +57,12 @@ export default function NewOPDBillPage() {
     const loadInitialData = async () => {
       try {
         const doctorsRes = await doctorService.getAll({ isActive: true });
-        setDoctors(doctorsRes.data.doctors || []);
+        const loadedDoctors = doctorsRes.data.doctors || [];
+        setDoctors(loadedDoctors);
+        if (doctorIdFromUrl) {
+          const linkedDoctor = loadedDoctors.find((doctor: Doctor) => doctor._id === doctorIdFromUrl);
+          if (linkedDoctor) setFormData(prev => ({ ...prev, doctorId: doctorIdFromUrl, items: applyDoctorConsultation(prev.items, linkedDoctor) }));
+        }
 
         if (patientIdFromUrl) {
           const patientRes = await patientService.getById(patientIdFromUrl);
@@ -69,7 +75,7 @@ export default function NewOPDBillPage() {
       }
     };
     loadInitialData();
-  }, [patientIdFromUrl]);
+  }, [patientIdFromUrl, doctorIdFromUrl]);
 
   const searchPatients = async (query: string) => {
     const request = ++patientRequest.current;

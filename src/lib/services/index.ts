@@ -23,6 +23,8 @@ export type { ClinicSettings, SettingsResponse } from './settingsService';
 
 export { medicineService } from './medicineService';
 export type { Medicine, StockBatch } from './medicineService';
+export { prescriptionService } from './prescriptionService';
+export type { DiagnosisMapping, MedicineSuggestion, PrescriptionMedicineInput } from './prescriptionService';
 
 export { serviceItemService } from './serviceItemService';
 export type { ServiceItem } from './serviceItemService';
