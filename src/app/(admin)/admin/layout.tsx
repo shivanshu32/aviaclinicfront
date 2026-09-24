@@ -10,11 +10,13 @@ import {
   LogOut,
   Menu,
   X,
+  UserCog,
 } from 'lucide-react';
 
 const navItems = [
   { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/admin/tenants', icon: Building2, label: 'Tenants' },
+  { path: '/admin/staff', icon: UserCog, label: 'Staff Management' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
