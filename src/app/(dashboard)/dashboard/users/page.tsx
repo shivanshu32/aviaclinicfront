@@ -15,7 +15,6 @@ import {
   EyeOff,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Select from '@/components/ui/Select';
 import PermissionManager from '@/components/staff/PermissionManager';
 import type { PermissionMap } from '@/lib/services/rbacService';
 

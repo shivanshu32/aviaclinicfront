@@ -86,7 +86,7 @@ export const superAdminService = {
   /**
    * Extend tenant trial
    */
-  async extendTenantTrial(tenantId: string, days: number, reason: string): Promise<{ success: boolean; data: any; message: string }> {
+  async extendTenantTrial(tenantId: string, days: number, reason: string): Promise<{ success: boolean; data: unknown; message: string }> {
     const token = localStorage.getItem('superAdminToken');
     const response = await fetch(`${API_URL}/super-admin/tenants/${tenantId}/trial/extend`, {
       method: 'POST',
@@ -113,9 +113,9 @@ export const superAdminService = {
   /**
    * Get all tenants
    */
-  async getTenants(params?: { page?: number; limit?: number; search?: string; status?: string }): Promise<{ success: boolean; data: any }> {
+  async getTenants(params?: { page?: number; limit?: number; search?: string; status?: string }): Promise<{ success: boolean; data: unknown }> {
     const token = localStorage.getItem('superAdminToken');
-    const queryString = new URLSearchParams(params as any).toString();
+    const queryString = new URLSearchParams(params as Record<string, string>).toString();
     const response = await fetch(`${API_URL}/super-admin/tenants?${queryString}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });

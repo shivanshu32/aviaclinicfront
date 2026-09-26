@@ -182,7 +182,7 @@ export default function AddPatientPage() {
                   </div>
                   <div>
                     <h2 className="text-sm font-bold text-gray-900">Basic Information</h2>
-                    <p className="text-[10px] text-gray-500">Enter the patient's personal details</p>
+                    <p className="text-[10px] text-gray-500">Enter the patient&apos;s personal details</p>
                   </div>
                 </div>
 
@@ -198,7 +198,7 @@ export default function AddPatientPage() {
                       value={formData.name} 
                       onChange={handleChange} 
                       className={inputClass} 
-                      placeholder="Enter patient's full name" 
+                      placeholder="Enter patient&apos;s full name"
                     />
                   </div>
                   
@@ -286,7 +286,7 @@ export default function AddPatientPage() {
                   </div>
                   <div>
                     <h2 className="text-sm font-bold text-gray-900">Address Information</h2>
-                    <p className="text-[10px] text-gray-500">Enter the patient's address details</p>
+                    <p className="text-[10px] text-gray-500">Enter the patient&apos;s address details</p>
                   </div>
                 </div>
 
@@ -379,7 +379,7 @@ export default function AddPatientPage() {
                   </div>
                   <div>
                     <h2 className="text-sm font-bold text-gray-900">Medical Information</h2>
-                    <p className="text-[10px] text-gray-500">Enter the patient's health details</p>
+                    <p className="text-[10px] text-gray-500">Enter the patient&apos;s health details</p>
                   </div>
                 </div>
 

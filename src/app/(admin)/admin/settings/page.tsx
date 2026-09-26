@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  Settings as SettingsIcon,
   Clock,
   Calendar,
   AlertCircle,
@@ -62,7 +61,7 @@ export default function SuperAdminSettings() {
   const [showExtendConfirm, setShowExtendConfirm] = useState(false);
   const [extending, setExtending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [extensionHistory, setExtensionHistory] = useState<any[]>([]);
+  const [extensionHistory, setExtensionHistory] = useState<unknown[]>([]);
 
   useEffect(() => {
     fetchTrialSettings();
@@ -95,7 +94,7 @@ export default function SuperAdminSettings() {
                 return { ...tenant, trialStatus: trialData.data.trialStatus };
               }
               return tenant;
-            } catch (error) {
+            } catch {
               return tenant;
             }
           })
