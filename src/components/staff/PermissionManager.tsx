@@ -7,7 +7,6 @@ import { rbacService, PermissionMap, RbacCatalog } from '@/lib/services/rbacServ
 interface StaffUser { _id: string; name: string; role: string; permissions?: PermissionMap; }
 export default function PermissionManager({ user, onClose, onSaved }: { user: StaffUser; onClose: () => void; onSaved: () => void }) {
   const [catalog, setCatalog] = useState<RbacCatalog | null>(null); const [permissions, setPermissions] = useState<PermissionMap>({}); const [search, setSearch] = useState(''); const [saving, setSaving] = useState(false); const [showResetConfirm, setShowResetConfirm] = useState(false); const [resetting, setResetting] = useState(false);
-  const role = catalog?.roles.find(item => item.id === user.role);
   useEffect(() => { rbacService.getCatalog().then(response => { setCatalog(response.data); setPermissions({ ...(response.data.roles.find(item => item.id === user.role)?.permissions || {}), ...(user.permissions || {}) }); }).catch(() => toast.error('Unable to load permission catalog')); }, [user]);
   const modules = useMemo(() => Object.entries(catalog?.modules || {}).filter(([, label]) => label.toLowerCase().includes(search.toLowerCase())), [catalog, search]);
   const setModule = (module: string, value: boolean) => setPermissions(current => ({ ...current, ...Object.fromEntries((catalog?.moduleActions[module] || []).map(action => [`${module}.${action}`, value])) }));
