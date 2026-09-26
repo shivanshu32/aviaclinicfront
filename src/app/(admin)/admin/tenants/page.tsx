@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
   Building2, 
@@ -67,7 +67,7 @@ export default function TenantsPage() {
   const [deleting, setDeleting] = useState(false);
   const [impersonating, setImpersonating] = useState<string | null>(null);
 
-  const fetchTenants = async () => {
+  const fetchTenants = useCallback(async () => {
     setLoading(true);
     try {
       const data = await superAdminService.getTenants({
@@ -115,12 +115,11 @@ export default function TenantsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, statusFilter, expiryFilter, searchQuery]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchTenants();
-  }, [page, statusFilter, expiryFilter]);
+  }, [fetchTenants]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

@@ -12,7 +12,7 @@ import {
   Search,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { superAdminService } from '@/lib/services';
+import { superAdminService, TrialExtensionHistory } from '@/lib/services';
 
 interface TrialSettings {
   defaultTrialDays: number;
@@ -61,7 +61,7 @@ export default function SuperAdminSettings() {
   const [showExtendConfirm, setShowExtendConfirm] = useState(false);
   const [extending, setExtending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [extensionHistory, setExtensionHistory] = useState<unknown[]>([]);
+  const [extensionHistory, setExtensionHistory] = useState<TrialExtensionHistory[]>([]);
 
   useEffect(() => {
     fetchTrialSettings();

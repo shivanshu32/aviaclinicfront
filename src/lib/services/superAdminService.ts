@@ -33,15 +33,57 @@ export interface TenantTrialDetails {
 
 export interface TrialExtensionHistory {
   _id: string;
-  tenantId: string;
-  tenantName: string;
-  oldTrialEnd: string;
-  newTrialEnd: string;
-  extensionMethod: string;
-  reason: string;
+  superAdminId: string;
+  action: string;
+  details: {
+    tenantId: string;
+    tenantName?: string;
+    oldTrialEnd: string;
+    newTrialEnd: string;
+    extensionMethod: string;
+    reason: string;
+  };
   superAdminName: string;
   superAdminEmail: string;
   timestamp: string;
+}
+
+export interface Tenant {
+  _id: string;
+  tenantId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  isActive: boolean;
+  subscription: {
+    plan: string;
+    status: string;
+    trialEndsAt: string;
+    currentPeriodStart: string;
+    currentPeriodEnd: string;
+  };
+  trialStatus?: {
+    status: string;
+    isTrial: boolean;
+    remainingDays: number;
+    trialStartsAt: string;
+    trialEndsAt: string;
+  };
+  stats: {
+    users: number;
+    patients: number;
+  };
+  createdAt: string;
+}
+
+export interface TenantsResponse {
+  tenants: Tenant[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }
 
 export const superAdminService = {
@@ -113,7 +155,7 @@ export const superAdminService = {
   /**
    * Get all tenants
    */
-  async getTenants(params?: { page?: number; limit?: number; search?: string; status?: string }): Promise<{ success: boolean; data: unknown }> {
+  async getTenants(params?: { page?: number; limit?: number; search?: string; status?: string }): Promise<{ success: boolean; data: TenantsResponse }> {
     const token = localStorage.getItem('superAdminToken');
     const queryString = new URLSearchParams(params as Record<string, string>).toString();
     const response = await fetch(`${API_URL}/super-admin/tenants?${queryString}`, {

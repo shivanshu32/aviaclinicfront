@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -79,15 +79,7 @@ export default function PatientDetailPage() {
     }
   }, [patientId]);
   
-  useEffect(() => {
-    if (activeTab === 'appointments' && patient) {
-      fetchAppointments();
-    } else if (activeTab === 'billing' && patient) {
-      fetchBills();
-    }
-  }, [activeTab, patient]);
-  
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setAppointmentsLoading(true);
       const response = await appointmentService.getAll({ patientId });
@@ -97,9 +89,9 @@ export default function PatientDetailPage() {
     } finally {
       setAppointmentsLoading(false);
     }
-  };
+  }, [patientId]);
   
-  const fetchBills = async () => {
+  const fetchBills = useCallback(async () => {
     try {
       setBillsLoading(true);
       const response = await billingService.opd.getAll({ patientId });
@@ -109,7 +101,15 @@ export default function PatientDetailPage() {
     } finally {
       setBillsLoading(false);
     }
-  };
+  }, [patientId]);
+  
+  useEffect(() => {
+    if (activeTab === 'appointments' && patient) {
+      fetchAppointments();
+    } else if (activeTab === 'billing' && patient) {
+      fetchBills();
+    }
+  }, [activeTab, patient, fetchAppointments, fetchBills]);
   
   const openBillModal = async () => {
     setShowBillModal(true);

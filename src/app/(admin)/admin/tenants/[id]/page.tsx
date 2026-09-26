@@ -85,7 +85,7 @@ export default function TenantDetailPage() {
 
   useEffect(() => {
     fetchTenant();
-  }, [tenantId]);
+  }, [tenantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchTenant = async () => {
     try {
@@ -180,7 +180,8 @@ export default function TenantDetailPage() {
     }
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'long',
