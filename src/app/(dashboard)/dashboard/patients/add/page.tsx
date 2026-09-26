@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Loader2, Save, User, MapPin, Heart, Phone, Check, UserPlus, Calendar, Mail, Building, Lock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, Save, User, MapPin, Heart, Phone, Check, UserPlus, Calendar, Mail, Building, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { patientService } from '@/lib/services';
 import Select from '@/components/ui/Select';
