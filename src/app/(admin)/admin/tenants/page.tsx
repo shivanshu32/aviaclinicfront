@@ -15,9 +15,13 @@ import {
   Trash2,
   X,
   AlertTriangle,
+  Calendar,
+  Clock,
+  Filter,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { superAdminService } from '@/lib/services';
 
 interface Tenant {
   _id: string;
@@ -30,6 +34,15 @@ interface Tenant {
     status: string;
     plan: string;
     trialEndsAt?: string;
+    currentPeriodStart?: string;
+    currentPeriodEnd?: string;
+  };
+  trialStatus?: {
+    status: string;
+    isTrial: boolean;
+    remainingDays: number;
+    trialStartsAt: string;
+    trialEndsAt: string;
   };
   stats: {
     users: number;
@@ -44,6 +57,7 @@ export default function TenantsPage() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [expiryFilter, setExpiryFilter] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -56,19 +70,42 @@ export default function TenantsPage() {
   const fetchTenants = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('superAdminToken');
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', '20');
-      if (statusFilter) params.append('status', statusFilter);
-      if (searchQuery) params.append('search', searchQuery);
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/super-admin/tenants?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+      const data = await superAdminService.getTenants({
+        page,
+        limit: 20,
+        search: searchQuery,
+        status: statusFilter,
       });
-      const data = await response.json();
+      
       if (data.success) {
-        setTenants(data.data.tenants || []);
+        // Fetch trial status for each tenant
+        const tenantsWithStatus = await Promise.all(
+          data.data.tenants.map(async (tenant: Tenant) => {
+            try {
+              const trialData = await superAdminService.getTenantTrialDetails(tenant.tenantId);
+              if (trialData.success) {
+                return { ...tenant, trialStatus: trialData.data.trialStatus };
+              }
+              return tenant;
+            } catch (error) {
+              return tenant;
+            }
+          })
+        );
+        
+        // Apply expiry filter if set
+        let filteredTenants = tenantsWithStatus;
+        if (expiryFilter === 'expiring') {
+          filteredTenants = tenantsWithStatus.filter(t => 
+            t.trialStatus?.isTrial && t.trialStatus.remainingDays <= 7 && t.trialStatus.remainingDays > 0
+          );
+        } else if (expiryFilter === 'expired') {
+          filteredTenants = tenantsWithStatus.filter(t => 
+            t.trialStatus?.isTrial && t.trialStatus.remainingDays <= 0
+          );
+        }
+        
+        setTenants(filteredTenants);
         setTotalPages(data.data.pagination?.pages || 1);
         setTotal(data.data.pagination?.total || 0);
       }
@@ -83,7 +120,7 @@ export default function TenantsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchTenants();
-  }, [page, statusFilter]);
+  }, [page, statusFilter, expiryFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,6 +172,63 @@ export default function TenantsPage() {
       case 'cancelled': return 'bg-gray-100 text-gray-700';
       default: return 'bg-gray-100 text-gray-700';
     }
+  };
+
+  const getTrialStatusColor = (status: string) => {
+    switch (status) {
+      case 'Active': return 'bg-green-100 text-green-700';
+      case 'Expired': return 'bg-red-100 text-red-700';
+      case 'Expiring Soon': return 'bg-yellow-100 text-yellow-700';
+      case 'Converted to Paid': return 'bg-blue-100 text-blue-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const isExpiringSoon = (tenant: Tenant) => {
+    return tenant.trialStatus?.isTrial && 
+           tenant.trialStatus.remainingDays <= 7 && 
+           tenant.trialStatus.remainingDays > 0;
+  };
+
+  const getExpiryDate = (tenant: Tenant) => {
+    if (tenant.trialStatus?.isTrial) {
+      return formatDate(tenant.trialStatus.trialEndsAt);
+    }
+    if (tenant.subscription?.currentPeriodEnd) {
+      return formatDate(tenant.subscription.currentPeriodEnd);
+    }
+    return 'N/A';
+  };
+
+  const getStartDate = (tenant: Tenant) => {
+    if (tenant.trialStatus?.isTrial) {
+      return formatDate(tenant.trialStatus.trialStartsAt);
+    }
+    if (tenant.subscription?.currentPeriodStart) {
+      return formatDate(tenant.subscription.currentPeriodStart);
+    }
+    return formatDate(tenant.createdAt);
+  };
+
+  const getRemainingDays = (tenant: Tenant) => {
+    if (tenant.trialStatus?.isTrial) {
+      return tenant.trialStatus.remainingDays;
+    }
+    if (tenant.subscription?.currentPeriodEnd) {
+      const days = Math.ceil((new Date(tenant.subscription.currentPeriodEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      return Math.max(0, days);
+    }
+    return 0;
+  };
+
+  const getDisplayStatus = (tenant: Tenant) => {
+    if (tenant.trialStatus?.isTrial) {
+      return tenant.trialStatus.status;
+    }
+    if (tenant.subscription?.status === 'active' && tenant.subscription?.plan !== 'free') {
+      return 'Paid';
+    }
+    return tenant.subscription?.status || 'Unknown';
   };
 
   const handleImpersonate = async (tenant: Tenant) => {
@@ -222,7 +316,7 @@ export default function TenantsPage() {
 
       {/* Filters */}
       <div className="bg-white rounded-2xl shadow-sm shadow-gray-100 border border-gray-100 p-4">
-        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+        <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-300" />
             <input
@@ -244,11 +338,21 @@ export default function TenantsPage() {
             <option value="suspended">Suspended</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          <select
+            value={expiryFilter}
+            onChange={(e) => { setExpiryFilter(e.target.value); setPage(1); }}
+            className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-sans text-secondary-700"
+          >
+            <option value="">All Expiry</option>
+            <option value="expiring">Expiring Soon (≤7 days)</option>
+            <option value="expired">Expired</option>
+          </select>
           <button
             type="submit"
-            className="px-5 py-2.5 bg-gray-100 text-secondary-600 rounded-xl hover:bg-gray-200 transition-all font-sans font-semibold"
+            className="px-5 py-2.5 bg-gray-100 text-secondary-600 rounded-xl hover:bg-gray-200 transition-all font-sans font-semibold flex items-center gap-2"
           >
-            Search
+            <Filter className="w-4 h-4" />
+            Filter
           </button>
         </form>
       </div>
@@ -270,32 +374,69 @@ export default function TenantsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Tenant</th>
-                    <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden md:table-cell">Email</th>
-                    <th className="text-left px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Status</th>
-                    <th className="text-center px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden lg:table-cell">Users</th>
-                    <th className="text-center px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden lg:table-cell">Patients</th>
-                    <th className="text-right px-6 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Actions</th>
+                    <th className="text-left px-4 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Tenant</th>
+                    <th className="text-left px-4 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden md:table-cell">Plan</th>
+                    <th className="text-left px-4 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden lg:table-cell">Start Date</th>
+                    <th className="text-left px-4 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider hidden lg:table-cell">Expiry Date</th>
+                    <th className="text-center px-4 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Days Left</th>
+                    <th className="text-left px-4 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Status</th>
+                    <th className="text-right px-4 py-4 text-xs font-semibold text-secondary-400 uppercase font-sans tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {tenants.map((tenant) => (
-                    <tr key={tenant._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
+                    <tr 
+                      key={tenant._id} 
+                      className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${
+                        isExpiringSoon(tenant) ? 'bg-yellow-50/50' : ''
+                      }`}
+                    >
+                      <td className="px-4 py-4">
                         <div>
                           <p className="font-semibold text-secondary-800 font-sans">{tenant.name}</p>
                           <p className="text-sm text-secondary-400 font-sans">{tenant.tenantId}</p>
+                          <p className="text-xs text-secondary-400 font-sans hidden md:block">{tenant.email}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 hidden md:table-cell">
-                        <p className="text-sm text-secondary-600 font-sans">{tenant.email}</p>
-                        <p className="text-xs text-secondary-400 font-sans">{formatDate(tenant.createdAt)}</p>
+                      <td className="px-4 py-4 hidden md:table-cell">
+                        <span className="text-sm font-medium text-secondary-700 capitalize">
+                          {tenant.subscription?.plan || 'Free'}
+                        </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-xl font-sans capitalize w-fit ${getStatusColor(tenant.subscription?.status)}`}>
-                            {tenant.subscription?.status}
+                      <td className="px-4 py-4 hidden lg:table-cell">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-secondary-400" />
+                          <span className="text-sm text-secondary-700">{getStartDate(tenant)}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 hidden lg:table-cell">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-secondary-400" />
+                          <span className="text-sm text-secondary-700">{getExpiryDate(tenant)}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Clock className="w-4 h-4 text-secondary-400" />
+                          <span className={`font-semibold ${
+                            getRemainingDays(tenant) <= 3 ? 'text-red-600' : 
+                            getRemainingDays(tenant) <= 7 ? 'text-yellow-600' : 
+                            'text-secondary-700'
+                          }`}>
+                            {getRemainingDays(tenant)}d
                           </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-xl font-sans capitalize w-fit ${getTrialStatusColor(getDisplayStatus(tenant))}`}>
+                            {getDisplayStatus(tenant)}
+                          </span>
+                          {isExpiringSoon(tenant) && (
+                            <span className="inline-flex px-2.5 py-1 text-xs font-semibold rounded-xl font-sans bg-yellow-100 text-yellow-700 w-fit">
+                              Expiring Soon
+                            </span>
+                          )}
                           {!tenant.isActive && (
                             <span className="inline-flex px-2.5 py-1 text-xs font-semibold rounded-xl font-sans bg-red-100 text-red-700 w-fit">
                               Disabled
@@ -303,13 +444,7 @@ export default function TenantsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center hidden lg:table-cell">
-                        <span className="font-semibold text-secondary-700 font-sans">{tenant.stats?.users || 0}</span>
-                      </td>
-                      <td className="px-6 py-4 text-center hidden lg:table-cell">
-                        <span className="font-semibold text-secondary-700 font-sans">{tenant.stats?.patients || 0}</span>
-                      </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => handleImpersonate(tenant)}

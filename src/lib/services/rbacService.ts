@@ -9,4 +9,5 @@ export const rbacService = {
   getAccess: (): Promise<{ success: boolean; data: AccessData }> => api.get('/rbac/access'),
   getCatalog: (): Promise<{ success: boolean; data: RbacCatalog }> => api.get('/rbac/catalog'),
   getAudit: (page = 1) => api.get(`/rbac/audit?page=${page}`),
+  resetPermissions: (userId: string): Promise<{ success: boolean; data: any }> => api.put(`/users/${userId}/reset-permissions`),
 };

@@ -37,3 +37,6 @@ export type { WhatsAppSession, WhatsAppLoginResponse, WhatsAppQRResponse, Create
 
 export { onboardingService } from './onboardingService';
 export type { OnboardingStatus, OnboardingSteps, TenantBranding, TenantAddress, OnboardingStatusResponse, ClinicDetailsData, BrandingData, DoctorData } from './onboardingService';
+
+export { superAdminService } from './superAdminService';
+export type { TrialSettings, TenantTrialDetails, TrialExtensionHistory } from './superAdminService';

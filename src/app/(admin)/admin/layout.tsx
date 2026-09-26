@@ -11,12 +11,17 @@ import {
   Menu,
   X,
   UserCog,
+  Settings,
+  Loader2,
 } from 'lucide-react';
+import { superAdminService } from '@/lib/services/superAdminService';
+import toast from 'react-hot-toast';
 
 const navItems = [
   { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/admin/tenants', icon: Building2, label: 'Tenants' },
   { path: '/admin/staff', icon: UserCog, label: 'Staff Management' },
+  { path: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     // Skip auth check for login page
@@ -42,10 +48,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname, router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('superAdminToken');
-    localStorage.removeItem('superAdminUser');
-    router.push('/admin/login');
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await superAdminService.logout();
+      toast.success('Logged out successfully');
+      router.push('/admin/login');
+      
+      // Force reload to clear any cached data
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to logout');
+      // Even if logout fails, clear local data and redirect
+      localStorage.removeItem('superAdminToken');
+      localStorage.removeItem('superAdminUser');
+      router.push('/admin/login');
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   // Don't show layout for login page
@@ -122,10 +145,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-colors font-sans"
+              disabled={loggingOut}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-colors font-sans disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <LogOut className="w-4 h-4" />
-              Sign Out
+              {loggingOut ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Signing out...
+                </>
+              ) : (
+                <>
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </>
+              )}
             </button>
           </div>
         </div>

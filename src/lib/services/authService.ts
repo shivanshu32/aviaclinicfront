@@ -106,9 +106,31 @@ export const authService = {
    * Logout user
    */
   logout: () => {
+    // Clear localStorage
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(TENANT_KEY);
+    
+    // Clear sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.clear();
+      
+      // Clear all cookies
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      
+      // Clear browser cache
+      if ('caches' in window) {
+        caches.keys().then((names) => {
+          names.forEach((name) => {
+            caches.delete(name);
+          });
+        });
+      }
+    }
   },
 
   /**

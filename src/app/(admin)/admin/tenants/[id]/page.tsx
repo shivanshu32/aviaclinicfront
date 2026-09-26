@@ -18,8 +18,12 @@ import {
   ToggleLeft,
   ToggleRight,
   Clock,
+  Plus,
+  CheckCircle,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { superAdminService } from '@/lib/services';
 
 interface TenantDetail {
   _id: string;
@@ -32,7 +36,15 @@ interface TenantDetail {
     status: string;
     plan: string;
     trialEndsAt?: string;
+    currentPeriodStart?: string;
     currentPeriodEnd?: string;
+  };
+  trialStatus?: {
+    status: string;
+    isTrial: boolean;
+    remainingDays: number;
+    trialStartsAt: string;
+    trialEndsAt: string;
   };
   settings?: {
     clinicName?: string;
@@ -63,6 +75,13 @@ export default function TenantDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [impersonating, setImpersonating] = useState(false);
+  
+  // Trial extension state
+  const [showExtendModal, setShowExtendModal] = useState(false);
+  const [extensionDays, setExtensionDays] = useState(7);
+  const [extensionReason, setExtensionReason] = useState('');
+  const [showExtendConfirm, setShowExtendConfirm] = useState(false);
+  const [extending, setExtending] = useState(false);
 
   useEffect(() => {
     fetchTenant();
@@ -78,6 +97,16 @@ export default function TenantDetailPage() {
       const data = await response.json();
       if (data.success) {
         setTenant(data.data.tenant);
+        
+        // Fetch trial status
+        try {
+          const trialData = await superAdminService.getTenantTrialDetails(tenantId);
+          if (trialData.success) {
+            setTenant(prev => prev ? { ...prev, trialStatus: trialData.data.trialStatus } : null);
+          }
+        } catch (error) {
+          console.error('Failed to fetch trial status:', error);
+        }
       } else {
         setError(data.error || 'Failed to load tenant');
       }
@@ -166,6 +195,56 @@ export default function TenantDetailPage() {
       case 'suspended': return 'bg-red-100 text-red-700';
       case 'cancelled': return 'bg-gray-100 text-gray-700';
       default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getTrialStatusColor = (status: string) => {
+    switch (status) {
+      case 'Active': return 'bg-green-100 text-green-700';
+      case 'Expired': return 'bg-red-100 text-red-700';
+      case 'Expiring Soon': return 'bg-yellow-100 text-yellow-700';
+      case 'Converted to Paid': return 'bg-blue-100 text-blue-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const calculateNewExpiryDate = (currentEnd: string, days: number) => {
+    const currentEndDate = new Date(currentEnd);
+    const baseDate = currentEndDate > new Date() ? currentEndDate : new Date();
+    const newDate = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000);
+    return newDate.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const handleExtendTrial = async () => {
+    if (!extensionReason.trim()) {
+      toast.error('Please provide a reason for this extension');
+      return;
+    }
+
+    if (!tenant) return;
+
+    setExtending(true);
+    try {
+      const data = await superAdminService.extendTenantTrial(tenantId, extensionDays, extensionReason);
+      if (data.success) {
+        toast.success('Trial extended successfully');
+        setShowExtendConfirm(false);
+        setExtensionReason('');
+        setExtensionDays(7);
+        setShowExtendModal(false);
+        fetchTenant(); // Refresh tenant data
+      } else {
+        toast.error(data.message || 'Failed to extend trial');
+      }
+    } catch (error) {
+      console.error('Failed to extend trial:', error);
+      toast.error('Failed to extend trial');
+    } finally {
+      setExtending(false);
     }
   };
 
@@ -351,12 +430,58 @@ export default function TenantDetailPage() {
                   {tenant.subscription?.status}
                 </span>
               </div>
-              {tenant.subscription?.status === 'trial' && tenant.subscription?.trialEndsAt && (
-                <div className="flex items-center justify-between">
-                  <span className="text-secondary-600">Trial Ends</span>
-                  <span className="font-medium text-secondary-800">{formatDate(tenant.subscription.trialEndsAt)}</span>
-                </div>
+              
+              {tenant.trialStatus?.isTrial && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-secondary-600">Trial Status</span>
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getTrialStatusColor(tenant.trialStatus.status)}`}>
+                      {tenant.trialStatus.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-secondary-600">Trial Start</span>
+                    <span className="font-medium text-secondary-800">{formatDate(tenant.trialStatus.trialStartsAt)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-secondary-600">Trial End</span>
+                    <span className="font-medium text-secondary-800">{formatDate(tenant.trialStatus.trialEndsAt)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-secondary-600">Days Remaining</span>
+                    <span className={`font-semibold ${
+                      tenant.trialStatus.remainingDays <= 3 ? 'text-red-600' : 
+                      tenant.trialStatus.remainingDays <= 7 ? 'text-yellow-600' : 
+                      'text-secondary-800'
+                    }`}>
+                      {tenant.trialStatus.remainingDays} days
+                    </span>
+                  </div>
+                  {tenant.trialStatus.isTrial && (
+                    <button
+                      onClick={() => setShowExtendModal(true)}
+                      className="w-full mt-2 px-4 py-2 bg-primary-50 text-primary-700 rounded-xl hover:bg-primary-100 transition-colors font-medium flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Extend Trial
+                    </button>
+                  )}
+                </>
               )}
+              
+              {!tenant.trialStatus?.isTrial && tenant.subscription?.currentPeriodEnd && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-secondary-600">Period Start</span>
+                    <span className="font-medium text-secondary-800">{formatDate(tenant.subscription.currentPeriodStart)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-secondary-600">Period End</span>
+                    <span className="font-medium text-secondary-800">{formatDate(tenant.subscription.currentPeriodEnd)}</span>
+                  </div>
+                </>
+              )}
+              
               <div className="flex items-center justify-between">
                 <span className="text-secondary-600">Account</span>
                 <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
@@ -386,6 +511,145 @@ export default function TenantDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Trial Extension Modal */}
+      {showExtendModal && tenant && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-primary-600" />
+                </div>
+                <h2 className="text-xl font-heading font-bold text-secondary-800">Extend Trial Period</h2>
+              </div>
+              <button 
+                onClick={() => { setShowExtendModal(false); setExtensionReason(''); setExtensionDays(7); }}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-all"
+              >
+                <X className="w-5 h-5 text-secondary-400" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-sm text-secondary-500">Tenant</p>
+                <p className="font-medium text-secondary-800">{tenant.name}</p>
+                <p className="text-sm text-secondary-400">{tenant.email}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Extension Duration (days)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="365"
+                  value={extensionDays}
+                  onChange={(e) => setExtensionDays(parseInt(e.target.value) || 1)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+
+              {tenant.trialStatus && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                  <p className="text-sm text-blue-800">
+                    <strong>Proposed New Expiry:</strong>{' '}
+                    {calculateNewExpiryDate(tenant.trialStatus.trialEndsAt, extensionDays)}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                  Reason for Extension <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={extensionReason}
+                  onChange={(e) => setExtensionReason(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Explain why this extension is necessary..."
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-100 flex gap-3">
+              <button
+                onClick={() => setShowExtendConfirm(true)}
+                disabled={!extensionReason.trim()}
+                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Extend Trial
+              </button>
+              <button
+                onClick={() => { setShowExtendModal(false); setExtensionReason(''); setExtensionDays(7); }}
+                className="flex-1 px-4 py-2 bg-gray-100 text-secondary-700 rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Extension Confirmation Modal */}
+      {showExtendConfirm && tenant && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <h2 className="text-xl font-heading font-bold text-secondary-800">Confirm Trial Extension</h2>
+              </div>
+              <button 
+                onClick={() => setShowExtendConfirm(false)}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-all"
+              >
+                <X className="w-5 h-5 text-secondary-400" />
+              </button>
+            </div>
+            <div className="p-6 space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-secondary-500">Current Expiry:</span>
+                <span className="font-medium">
+                  {tenant.trialStatus ? formatDate(tenant.trialStatus.trialEndsAt) : 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-secondary-500">Extension:</span>
+                <span className="font-medium text-primary-600">+{extensionDays} days</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-secondary-500">New Expiry:</span>
+                <span className="font-medium">
+                  {tenant.trialStatus ? calculateNewExpiryDate(tenant.trialStatus.trialEndsAt, extensionDays) : 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-secondary-500">Reason:</span>
+                <span className="font-medium">{extensionReason}</span>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-100 flex gap-3">
+              <button
+                onClick={handleExtendTrial}
+                disabled={extending}
+                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+              >
+                {extending ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Confirm Extension'}
+              </button>
+              <button
+                onClick={() => setShowExtendConfirm(false)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-secondary-700 rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
